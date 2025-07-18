@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Game - Homepage</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f9fafe;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 40px 50px;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        h1 {
+            color: #2b445a;
+            margin-bottom: 30px;
+        }
+        .difficulty-selector {
+            margin-bottom: 40px;
+        }
+        label {
+            font-size: 1.2em;
+            color: #333;
+            margin-right: 15px;
+        }
+        select {
+            padding: 10px 15px;
+            font-size: 1em;
+            border-radius: 8px;
+            border: 1.5px solid #cce;
+            font-family: 'DM Sans', sans-serif;
+        }
+        #startBtn {
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: none;
+            background: #46aaff;
+            color: #fff;
+            font-weight: bold;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.2em;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+        #startBtn:hover {
+            background: #3598f0;
+            transform: translateY(-2px);
+        }
+        #startBtn:active {
+            background: #1976d2;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Python Maze Game</h1>
+        <div class="difficulty-selector">
+            <label for="difficulty">เลือกระดับความยาก:</label>
+            <select id="difficulty" name="difficulty">
+                <option value="easy">ง่าย (Easy)</option>
+                <option value="medium">ปานกลาง (Medium)</option>
+                <option value="hard">ยาก (Hard)</option>
+            </select>
+        </div>
+        <button id="startBtn">Start Game</button>
+    </div>
+
+    <script>
+        document.getElementById('startBtn').addEventListener('click', function() {
+            // ดึงค่าระดับความยากที่เลือก
+            const difficulty = document.getElementById('difficulty').value;
+            
+            // สร้าง URL ไปยังหน้าเกมในโฟลเดอร์ Mainpage
+            const gameUrl = `../Mainpage/MazeGame.html?level=${difficulty}`;
+            
+            // สั่งให้เบราว์เซอร์เปิดหน้าเกม
+            window.location.href = gameUrl;
+        });
+    </script>
+
+</body>
+</html>
