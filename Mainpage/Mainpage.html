@@ -88,8 +88,8 @@
     }
     .grid {
       display: grid;
-      gap: 4px;
-      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      gap: 0; /* Remove gap for continuous bushes */
+      background: #27ae60; /* Green ground for grass theme */
       border-radius: 20px;
       padding: 20px;
       box-shadow:
@@ -113,9 +113,9 @@
     .cell {
       width: 60px;
       height: 60px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #ffffff, #f8f9fa);
-      border: 2px solid #e9ecef;
+      border-radius: 0; /* Remove rounding for continuous look */
+      background: transparent; /* No block background */
+      border: none; /* Remove default border */
       position: relative;
       display: flex;
       align-items: center;
@@ -125,26 +125,71 @@
       font-weight: 600;
       overflow: visible;
     }
-    .cell.t { border-top: 6px solid #667eea; }
-    .cell.b { border-bottom: 6px solid #667eea; }
-    .cell.l { border-left: 6px solid #667eea; }
-    .cell.r { border-right: 6px solid #667eea; }
     .cell.start {
-      background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
-      border-color: #48bb78;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
+      background: transparent;
+      animation: none;
     }
     .cell.goal {
-      background: none;
+      background: transparent;
       border-color: transparent;
     }
-    .cell.goal::after {
-      content: '🏁';
-      font-size: 1.5em;
+    .cell.goal img {
+      width: 130%;
+      height: 130%;
+      object-fit: contain;
+      pointer-events: none;
+      position: absolute;
+      top: -15%;
+      left: -15%;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+      border-radius: 50%;
+      animation: glow 2s infinite alternate;
+    }
+    @keyframes glow {
+      from { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+      to { box-shadow: 0 0 30px rgba(255, 215, 0, 1); }
+    }
+    :root {
+      --wall-thickness: 20px; /* Adjust bush thickness for fuller look */
+    }
+    .wall {
+      position: absolute;
+      background-image: url('../assets/glass.png'); /* Bush image */
+      background-position: center;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .wall.top {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: var(--wall-thickness);
+      background-size: auto 100%; /* Scale to height, repeat horizontally */
+      background-repeat: repeat-x;
+    }
+    .wall.bottom {
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: var(--wall-thickness);
+      background-size: auto 100%; /* Scale to height, repeat horizontally */
+      background-repeat: repeat-x;
+    }
+    .wall.left {
+      left: 0;
+      top: 0;
+      width: var(--wall-thickness);
+      height: 100%;
+      background-size: 100% auto; /* Scale to width, repeat vertically */
+      background-repeat: repeat-y;
+    }
+    .wall.right {
+      right: 0;
+      top: 0;
+      width: var(--wall-thickness);
+      height: 100%;
+      background-size: 100% auto; /* Scale to width, repeat vertically */
+      background-repeat: repeat-y;
     }
     .ball {
       position: absolute;
@@ -166,13 +211,25 @@
     .direction-arrow {
       position: absolute;
       font-size: 1.4em;
-      color: #e74c3c;
       font-weight: bold;
-      text-shadow:
-        0 0 8px rgba(231, 76, 60, 0.9),
-        0 1px 3px rgba(0, 0, 0, 0.4);
       z-index: 4;
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+    .direction-arrow.forward {
+      color: #000000;
+      text-shadow:
+        -1px -1px 0 #ffffff,
+        1px -1px 0 #ffffff,
+        -1px 1px 0 #ffffff,
+        1px 1px 0 #ffffff;
+    }
+    .direction-arrow.left {
+      color: red;
+      font-size: 1.2em;
+    }
+    .direction-arrow.right {
+      color: #6633FF;
+      font-size: 1.2em;
     }
     .direction-arrow.up {
       top: -10px;
@@ -184,27 +241,15 @@
       left: 50%;
       transform: translateX(-50%);
     }
-    .direction-arrow.left {
+    .direction-arrow.left-pos {
       left: -10px;
       top: 50%;
       transform: translateY(-50%);
     }
-    .direction-arrow.right {
+    .direction-arrow.right-pos {
       right: -10px;
       top: 50%;
       transform: translateY(-50%);
-    }
-    .direction-arrow::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 120%;
-      height: 120%;
-      background: radial-gradient(circle, rgba(231, 76, 60, 0.3) 0%, transparent 70%);
-      border-radius: 50%;
-      z-index: -1;
     }
     .controls {
       display: flex;
@@ -242,7 +287,7 @@
     <div id="objective">
       <strong>🎯 Objective:</strong> Navigate the golden ball to reach the <b>🏁 finish line</b>!
       <br>Use <code>walk(steps)</code> to move forward, <code>turn('left')</code> and <code>turn('right')</code> to change direction.
-      <br><strong>🧭 Direction:</strong> Watch the red arrow to see which way you're facing!
+      <br><strong>🧭 Direction:</strong> Watch the black arrow to see which way you're facing!
       <br><strong>🔘 Switches:</strong> Step on switches to open corresponding doors 🚪!
     </div>
     <div class="game-layout">
@@ -335,16 +380,44 @@
           cell.style.width = cellSize + "px";
           cell.style.height = cellSize + "px";
           
-          if (walls.t) cell.classList.add("t");
-          if (walls.b) cell.classList.add("b");
-          if (walls.l) cell.classList.add("l");
-          if (walls.r) cell.classList.add("r");
+          if (walls.t) {
+            let wallDiv = document.createElement("div");
+            wallDiv.classList.add("wall", "top");
+            cell.appendChild(wallDiv);
+          }
+          if (walls.b) {
+            let wallDiv = document.createElement("div");
+            wallDiv.classList.add("wall", "bottom");
+            cell.appendChild(wallDiv);
+          }
+          if (walls.l) {
+            let wallDiv = document.createElement("div");
+            wallDiv.classList.add("wall", "left");
+            cell.appendChild(wallDiv);
+          }
+          if (walls.r) {
+            let wallDiv = document.createElement("div");
+            wallDiv.classList.add("wall", "right");
+            cell.appendChild(wallDiv);
+          }
           
           if (r === START.row && c === START.col) {
             cell.classList.add("start");
           }
           if (r === GOAL.row && c === GOAL.col) {
             cell.classList.add("goal");
+            let img = document.createElement("img");
+            img.src = "/assets/checkered_flag.png"; // Path to checkered flag image
+            img.alt = "Goal";
+            img.onerror = function() {
+              this.style.display = 'none';
+              let goalEmoji = document.createElement("div");
+              goalEmoji.innerHTML = "🏁";
+              goalEmoji.style.fontSize = "2em";
+              goalEmoji.style.position = "absolute";
+              cell.appendChild(goalEmoji);
+            };
+            cell.appendChild(img);
           }
           
           if (grid[r][c].hasSwitch) {
@@ -362,11 +435,17 @@
       placeBall(player.row, player.col, dir);
     }
 
+    function getPositionClass(d) {
+      if (d === "left") return "left-pos";
+      if (d === "right") return "right-pos";
+      return d;
+    }
+
     function placeBall(row, col, dir) {
       let oldBall = document.querySelector('.ball');
-      let oldArrow = document.querySelector('.direction-arrow');
+      let oldArrows = document.querySelectorAll('.direction-arrow');
+      oldArrows.forEach(arrow => arrow.remove());
       if (oldBall) oldBall.remove();
-      if (oldArrow) oldArrow.remove();
       
       const mapDiv = document.getElementById("map");
       let cellIndex = row * grid[0].length + col;
@@ -396,11 +475,29 @@
 
       ball.appendChild(img);
       cell.appendChild(ball);
-      
-      let arrow = document.createElement("div");
-      arrow.className = `direction-arrow ${dir}`;
-      arrow.innerHTML = DIR_EMOJI[dir];
-      cell.appendChild(arrow);
+
+      const dirIndex = DIRS.indexOf(dir);
+      const forwardDir = dir;
+      const leftDir = DIRS[(dirIndex + 3) % 4];
+      const rightDir = DIRS[(dirIndex + 1) % 4];
+
+      // Create forward arrow (black with white frame)
+      let forwardArrow = document.createElement("div");
+      forwardArrow.className = `direction-arrow forward ${getPositionClass(forwardDir)}`;
+      forwardArrow.innerHTML = DIR_EMOJI[forwardDir];
+      cell.appendChild(forwardArrow);
+
+      // Create left arrow (red)
+      let leftArrow = document.createElement("div");
+      leftArrow.className = `direction-arrow left ${getPositionClass(leftDir)}`;
+      leftArrow.innerHTML = DIR_EMOJI[leftDir];
+      cell.appendChild(leftArrow);
+
+      // Create right arrow (green)
+      let rightArrow = document.createElement("div");
+      rightArrow.className = `direction-arrow right ${getPositionClass(rightDir)}`;
+      rightArrow.innerHTML = DIR_EMOJI[rightDir];
+      cell.appendChild(rightArrow);
     }
 
     async function runCode() {
