@@ -329,9 +329,10 @@
     let currentLevel = null;
     let activatedSwitches = new Set();
 
-    // Get level from URL param
+    // Get level and character from URL param
     const urlParams = new URLSearchParams(window.location.search);
     currentLevel = urlParams.get('level') || 1; // Default to 1 if no param
+    let selectedCharacter = urlParams.get('character') || '/assets/pixil-gif-drawing-unscreen.gif'; // Default character
     document.getElementById('level-number').textContent = currentLevel;
 
     // Load level from JSON
@@ -456,7 +457,7 @@
       ball.className = "ball";
 
       let img = document.createElement("img");
-      img.src = "/assets/pixil-gif-drawing-unscreen.gif";
+      img.src = selectedCharacter;
       img.alt = "Ball";
       img.onerror = function() {
         this.style.display = 'none';
