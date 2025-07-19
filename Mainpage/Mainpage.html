@@ -1,1583 +1,508 @@
+<!-- mainpage.html -->
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8" />
-
-  <title>Python Maze Ball Game</title>
-
+  <title>Python Maze Ball Game - Level</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-
   <style>
-
     * { box-sizing: border-box; }
-
     body {
-
       font-family: 'Inter', sans-serif;
-
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
       margin: 0;
-
       min-height: 100vh;
-
       padding: 20px;
-
       overflow-x: hidden;
-
     }
-
     .container {
-
       max-width: 900px;
-
       margin: 0 auto;
-
       background: rgba(255, 255, 255, 0.95);
-
       backdrop-filter: blur(10px);
-
       border-radius: 24px;
-
       padding: 40px;
-
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-
       border: 1px solid rgba(255, 255, 255, 0.2);
-
       position: relative;
-
       overflow: hidden;
-
     }
-
     .container::before {
-
       content: '';
-
       position: absolute;
-
       top: 0;
-
       left: 0;
-
       right: 0;
-
       height: 4px;
-
       background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
-
       background-size: 200% 100%;
-
       animation: gradientMove 3s ease-in-out infinite;
-
     }
-
     @keyframes gradientMove {
-
       0%, 100% { background-position: 0% 50%; }
-
       50% { background-position: 100% 50%; }
-
     }
-
     h2 {
-
       margin: 0 0 30px 0;
-
       font-size: 2.5em;
-
       font-weight: 700;
-
       background: linear-gradient(135deg, #667eea, #764ba2);
-
       -webkit-background-clip: text;
-
       -webkit-text-fill-color: transparent;
-
       background-clip: text;
-
       text-align: center;
-
       text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
     }
-
     #objective {
-
       background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
-
       border: 1px solid rgba(103, 126, 234, 0.2);
-
       border-radius: 16px;
-
       padding: 20px;
-
       margin-bottom: 30px;
-
       font-size: 1.1em;
-
       line-height: 1.6;
-
       color: #1a1a1a;
-
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-
       position: relative;
-
     }
-
     #objective::before {
-
       content: '🎯';
-
       position: absolute;
-
       top: -10px;
-
       left: 20px;
-
       font-size: 1.5em;
-
       background: white;
-
       padding: 5px 10px;
-
       border-radius: 50%;
-
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
     }
-
     .game-layout {
-
       display: grid;
-
       grid-template-columns: auto 1fr;
-
       gap: 40px;
-
       align-items: start;
-
     }
-
     .maze-container {
-
       position: relative;
-
     }
-
-    
-
     .grid {
-
       display: grid;
-
       gap: 4px;
-
       background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-
       border-radius: 20px;
-
       padding: 20px;
-
       box-shadow:
-
         inset 0 4px 12px rgba(0, 0, 0, 0.1),
-
         0 8px 24px rgba(0, 0, 0, 0.1);
-
       border: 2px solid rgba(255, 255, 255, 0.3);
-
       position: relative;
-
     }
-
     .grid::before {
-
       content: '';
-
       position: absolute;
-
       top: -2px;
-
       left: -2px;
-
       right: -2px;
-
       bottom: -2px;
-
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-
       border-radius: 22px;
-
       z-index: -1;
-
       opacity: 0.3;
-
     }
-
     .cell {
-
       width: 60px;
-
       height: 60px;
-
       border-radius: 12px;
-
       background: linear-gradient(135deg, #ffffff, #f8f9fa);
-
       border: 2px solid #e9ecef;
-
       position: relative;
-
       display: flex;
-
       align-items: center;
-
       justify-content: center;
-
       font-size: 1.2em;
-
       color: #2d3748;
-
       font-weight: 600;
-
       overflow: visible;
-
     }
-
     .cell.t { border-top: 6px solid #667eea; }
-
     .cell.b { border-bottom: 6px solid #667eea; }
-
     .cell.l { border-left: 6px solid #667eea; }
-
     .cell.r { border-right: 6px solid #667eea; }
-
     .cell.start {
-
       background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
-
       border-color: #48bb78;
-
       animation: pulse 2s infinite;
-
     }
-
     @keyframes pulse {
-
       0%, 100% { transform: scale(1); }
-
       50% { transform: scale(1.05); }
-
     }
-
     .cell.goal {
-
       background: none;
-
       border-color: transparent;
-
     }
-
-    .cell.goal img {
-
-      width: 130%;
-
-      height: 130%;
-
-      object-fit: contain;
-
-      pointer-events: none;
-
-      position: absolute;
-
-      top: -15%;
-
-      left: -15%;
-
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
-
-      border-radius: 50%;
-
-      animation: glow 2s infinite alternate;
-
+    .cell.goal::after {
+      content: '🏁';
+      font-size: 1.5em;
     }
-
-    @keyframes glow {
-
-      from { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
-
-      to   { box-shadow: 0 0 30px rgba(255, 215, 0, 1); }
-
-    }
-
     .ball {
-
       position: absolute;
-
       left: 0;
-
       top: 0;
-
       width: 100%;
-
       height: 100%;
-
-      display: radial-gradient(circle, #ffd700, #ffcc00);
-
-      border-radius: 50%;
-
-      box-shadow: 0 0 10px rgba(255, 215,0,0.5);
-
-      z-index: 10;
-
-      pointer-events: none;
-
-    }
-
-    .ball img {
-
-      position: absolute;
-
-      top: 0;
-
-      left: 0;
-
       display: flex;
-
       align-items: center;
-
       justify-content: center;
-
       z-index: 10;
-
       pointer-events: none;
-
     }
-
     .ball img {
-
       object-fit: contain;
-
       pointer-events: none;
-
       position: absolute;
-
     }
-
-    
-
     .direction-arrow {
-
       position: absolute;
-
       font-size: 1.4em;
-
       color: #e74c3c;
-
       font-weight: bold;
-
       text-shadow:
-
         0 0 8px rgba(231, 76, 60, 0.9),
-
         0 1px 3px rgba(0, 0, 0, 0.4);
-
       z-index: 4;
-
-      filter: drop-shadow(0 2px 4px rgba(0, 0,0,0.3));
-
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
-
-    
-
     .direction-arrow.up {
-
       top: -10px;
-
       left: 50%;
-
       transform: translateX(-50%);
-
     }
-
-    
-
     .direction-arrow.down {
-
       bottom: -10px;
-
       left: 50%;
-
       transform: translateX(-50%);
-
     }
-
-    
-
     .direction-arrow.left {
-
       left: -10px;
-
-      top: translateY(-50%);
-
-    }
-
-    
-
-    .direction-arrow.right {
-
-      right: -10px;
-
-      top: translateY(-50%);
-
-    }
-
-    
-
-    .direction-arrow::before {
-
-      content: '';
-
-      position: absolute;
-
       top: 50%;
-
-      left: translate(-50%, -50%);
-
+      transform: translateY(-50%);
+    }
+    .direction-arrow.right {
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .direction-arrow::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       width: 120%;
-
       height: 120%;
-
       background: radial-gradient(circle, rgba(231, 76, 60, 0.3) 0%, transparent 70%);
-
       border-radius: 50%;
-
       z-index: -1;
-
     }
-
-    
-
     .controls {
-
       display: flex;
-
       align-items: center;
-
       gap: 16px;
-
       margin-top: 24px;
-
       flex-wrap: wrap;
-
     }
-
-    button, select {
-
-      padding: 12px 20px 20px;
-
-      border-radius: 10px;
-
-      border: none;
-
-      font-size: 16px;
-
-      cursor: pointer;
-
-    }
-
-    select {
-
-      background: #f8f9fa;
-
-      border: 1px solid #ccc;
-
-    }
-
     button {
-
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
       background: linear-gradient(135deg, #667eea, #764ba2);
-
       color: white;
-
       font-weight: 600;
-
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-
     }
-
     #editor {
-
       border: 1px solid #ddd;
-
       height: 300px;
-
     }
-
     #output {
-
       margin-top: 10px;
-
       font-family: monospace;
-
       white-space: pre-wrap;
-
       color: #333;
-
     }
-
   </style>
-
 </head>
-
 <body>
-
   <div class="container">
-
-    <h2>🎮 Python Maze Ball Game</h2>
-
+    <h2>🎮 Python Maze Ball Game - Level <span id="level-number"></span></h2>
     <div id="objective">
-
       <strong>🎯 Objective:</strong> Navigate the golden ball to reach the <b>🏁 finish line</b>!
-
       <br>Use <code>walk(steps)</code> to move forward, <code>turn('left')</code> and <code>turn('right')</code> to change direction.
-
       <br><strong>🧭 Direction:</strong> Watch the red arrow to see which way you're facing!
-
       <br><strong>🔘 Switches:</strong> Step on switches to open corresponding doors 🚪!
-
     </div>
-
-    
-
     <div class="game-layout">
-
       <div class="maze-container">
-
         <div class="grid" id="map"></div>
-
       </div>
-
-      
-
       <div class="code-section">
-
         <div class="code-header">Python Code Editor</div>
-
         <div id="editor"></div>
-
         <div class="controls">
-
           <button id="runBtn" onclick="runCode()">🚀 Run Code</button>
-
-          <button onclick="nextLevel()">🎯 ด่านต่อไป</button>
-
-          <button onclick="resetGame()">🔄 Reset</button>
-
+          <button onclick="window.location.href = '../Homepage/homepage.html'">🔙 Back to Homepage</button>
+          <button onclick="resetLevel()">🔄 Reset Level</button>
         </div>
-
         <div id="output"></div>
-
       </div>
-
     </div>
-
   </div>
 
-</div>
-
-
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-
   <script>
-
     const editor = CodeMirror(document.getElementById('editor'), {
-
       mode: "python",
-
       theme: "default",
-
       lineNumbers: true,
-
       value: "# Example:\nwalk(2)\nturn('left')\nwalk(3)"
-
     });
 
-
-
     const DIRS = ["up", "right", "down", "left"];
-
     const DIR_EMOJI = {
-
       "right": "▶",
-
       "left": "◀",
-
       "up": "▲",
-
       "down": "▼"
-
     };
 
-    
-
     let START, GOAL, grid, player, animating = false;
-
-    let currentLevel = 1;
-
+    let currentLevel = null;
     let activatedSwitches = new Set();
 
-
-
-    function getMazeSizeFromLevel(level) {
-
-      if (level >= 1 && level <= 5) return 5;
-
-      if (level >= 6 && level <= 10) return 6;
-
-      if (level >= 11 && level <= 15) return 7;
-
-      if (level >= 16 && level <= 20) return 8;
-
-      if (level >= 21 && level <= 25) return 9;
-
-      return Math.min(10 + Math.floor((level - 26) / 5), 15);
-
-    }
-
-
-
-    function getDifficultyName(level) {
-
-      if (level >= 1 && level <= 5) return "🟢 Easy";
-
-      if (level >= 6 && level <= 10) return "🟡 Medium Easy";
-
-      if (level >= 11 && level <= 15) return "🟠 Normal";
-
-      if (level >= 16 && level <= 20) return "🔶 Medium Hard";
-
-      if (level >= 21 && level <= 25) return "🔴 Hard";
-
-      return "💀 Extreme";
-
-    }
-
-
-
-    function shuffle(array) {
-
-      for (let i = array.length - 1; i > 0; i--) {
-
-        const j = Math.floor(Math.random() * (i + 1));
-
-        [array[i], array[j]] = [array[j], array[i]];
-
-      }
-
-      return array;
-
-    }
-
-
-
-    function opposite(dir) {
-
-      return { t: "b", b: "t", l: "r", r: "l" }[dir];
-
-    }
-
-
-
-    // +++ NEW FUNCTION +++
-
-    function addComplexity(maze, level) {
-
-        if (level < 10) {
-
-            return;
-
-        }
-
-        const size = maze.length;
-
-        const wallsToRemove = Math.floor((level - 9) / 2) + 1;
-
-
-
-        for (let i = 0; i < wallsToRemove; i++) {
-
-            const row = Math.floor(Math.random() * (size - 2)) + 1;
-
-            const col = Math.floor(Math.random() * (size - 2)) + 1;
-
-            const directions = shuffle(["t", "r", "b", "l"]);
-
-            const dir = directions[0];
-
-            
-
-            let nr = row, nc = col;
-
-            if (dir === "t") nr--;
-
-            if (dir === "r") nc++;
-
-            if (dir === "b") nr++;
-
-            if (dir === "l") nc--;
-
-
-
-
-
-            if (maze[row][col].walls[dir]) {
-
-                 maze[row][col].walls[dir] = false;
-
-                 maze[nr][nc].walls[opposite(dir)] = false;
-
-            }
-
-        }
-
-    }
-
-
-
-    function findPath(maze, start, goal) {
-
-      const size = maze.length;
-
-      let visited = Array.from({length: size}, () => Array(size).fill(false));
-
-      let parent = Array.from({length: size}, () => Array(size).fill(null));
-
-      let queue = [{row: start.row, col: start.col}];
-
-      visited[start.row][start.col] = true;
-
-      while (queue.length) {
-
-        let curr = queue.shift();
-
-        if (curr.row === goal.row && curr.col === goal.col) {
-
-          // reconstruct path
-
-          let path = [];
-
-          let at = curr;
-
-          while (at) {
-
-            path.push(at);
-
-            at = parent[at.row][at.col];
-
-          }
-
-          path.reverse();
-
-          return path;
-
-        }
-
-        let {row, col} = curr;
-
-        let dirs = ['t','r','b','l'];
-
-        for (let d of dirs) {
-
-          let nr = row, nc = col;
-
-          if (d === 't') nr--;
-
-          if (d === 'r') nc++;
-
-          if (d === 'b') nr++;
-
-          if (d === 'l') nc--;
-
-          if (nr >= 0 && nr < size && nc >= 0 && nc < size && !maze[row][col].walls[d] && !visited[nr][nc]) {
-
-            visited[nr][nc] = true;
-
-            parent[nr][nc] = {row, col};
-
-            queue.push({row: nr, col: nc});
-
-          }
-
-        }
-
-      }
-
-      return null;
-
-    }
-
-
-
-    function generateMazeByLevel(level) {
-
-      let size = getMazeSizeFromLevel(level);
-
-      
-
-      let maze = Array.from({ length: size }, () =>
-
-        Array.from({ length: size }, () => ({
-
-          walls: { t: true, r: true, b: true, l: true },
-
-          visited: false,
-
-          hasSwitch: false,
-
-          hasDoor: false,
-
-          switchId: null,
-
-          doorId: null
-
-        }))
-
-      );
-
-      
-
-      START = { row: 0, col: 0, dir: "right" };
-
-      GOAL = { row: size - 1, col: size - 1 };
-
-
-
-      function carvePath(row, col) {
-
-        maze[row][col].visited = true;
-
-        let directions = shuffle(["t", "r", "b", "l"]);
-
-        
-
-        for (let dir of directions) {
-
-          let nr = row, nc = col;
-
-          if (dir === "t") nr--;
-
-          if (dir === "r") nc++;
-
-          if (dir === "b") nr++;
-
-          if (dir === "l") nc--;
-
-          
-
-          if (nr >= 0 && nr < size && nc >= 0 && nc < size && !maze[nr][nc].visited) {
-
-            maze[row][col].walls[dir] = false;
-
-            maze[nr][nc].walls[opposite(dir)] = false;
-
-            carvePath(nr, nc);
-
-          }
-
-        }
-
-      }
-
-
-
-      function hasPath() {
-
-        let visited = Array.from({ length: size }, () =>
-
-          Array.from({ length: size }, () => false)
-
+    // Get level from URL param
+    const urlParams = new URLSearchParams(window.location.search);
+    currentLevel = urlParams.get('level') || 1; // Default to 1 if no param
+    document.getElementById('level-number').textContent = currentLevel;
+
+    // Load level from JSON
+    async function loadLevel(level) {
+      try {
+        const response = await fetch(`../levels/level${level}.json`);
+        const data = await response.json();
+        START = data.start;
+        GOAL = data.goal;
+        grid = Array.from({ length: data.size }, (_, r) =>
+          Array.from({ length: data.size }, (_, c) => ({
+            walls: data.walls[r][c],
+            hasSwitch: data.switches.some(s => s.row === r && s.col === c),
+            switchId: data.switches.find(s => s.row === r && s.col === c)?.id,
+            hasDoor: data.doors.some(d => d.row === r && d.col === c),
+            doorId: data.doors.find(d => d.row === r && d.col === c)?.id
+          }))
         );
-
-        let stack = [{ row: START.row, col: START.col }];
-
-        
-
-        while (stack.length > 0) {
-
-          let { row, col } = stack.pop();
-
-          if (row === GOAL.row && col === GOAL.col) return true;
-
-          visited[row][col] = true;
-
-
-
-          let neighbors = [];
-
-          if (!maze[row][col].walls.t && row > 0 && !visited[row - 1][col])
-
-            neighbors.push({ row: row - 1, col });
-
-          if (!maze[row][col].walls.r && col < size - 1 && !visited[row][col + 1])
-
-            neighbors.push({ row, col: col + 1 });
-
-          if (!maze[row][col].walls.b && row < size - 1 && !visited[row + 1][col])
-
-            neighbors.push({ row: row + 1, col });
-
-          if (!maze[row][col].walls.l && col > 0 && !visited[row][col - 1])
-
-            neighbors.push({ row, col: col - 1 });
-
-
-
-          stack.push(...neighbors);
-
-        }
-
-        return false;
-
+        player = { ...START };
+        activatedSwitches.clear();
+        drawMap();
+        setOutput(`Level ${level} loaded! Write code to solve it.`);
+      } catch (err) {
+        setOutput(`Error loading level: ${err.message}`);
       }
-
-
-
-      let tries = 0;
-
-      do {
-
-        tries++;
-
-        maze.forEach(row => row.forEach(cell => {
-
-          cell.walls = { t: true, r: true, b: true, l: true };
-
-          cell.visited = false;
-
-          cell.hasSwitch = false;
-
-          cell.hasDoor = false;
-
-        }));
-
-        carvePath(START.row, START.col);
-
-      } while (!hasPath() && tries < 10);
-
-
-
-      // +++ ADDED THIS LINE +++
-
-      addComplexity(maze, level);
-
-
-
-      if (level > 2 && Math.random() > 0.5) {
-
-        addSwitchesAndDoors(maze, level);
-
-      }
-
-
-
-      return maze;
-
     }
 
-
-
-    function addSwitchesAndDoors(maze, level) {
-
-      const size = maze.length;
-
-      const numSwitches = Math.min(Math.floor(level / 3), 3);
-
-      const path = findPath(maze, START, GOAL);
-
-      if (!path) return;
-
-
-
-      let deadEnds = [];
-
-      for (let r = 0; r < size; r++) {
-
-        for (let c = 0; c < size; c++) {
-
-          if (r === START.row && c === START.col) continue;
-
-          if (r === GOAL.row && c === GOAL.col) continue;
-
-          let wallCount = 0;
-
-          if (maze[r][c].walls.t) wallCount++;
-
-          if (maze[r][c].walls.r) wallCount++;
-
-          if (maze[r][c].walls.b) wallCount++;
-
-          if (maze[r][c].walls.l) wallCount++;
-
-          if (wallCount === 3) {
-
-            deadEnds.push({row: r, col: c});
-
-          }
-
-        }
-
-      }
-
-      if (deadEnds.length === 0) return;
-
-
-
-      shuffle(deadEnds);
-
-
-
-      let numPlaced = 0;
-
-      for (let i = 0; i < numSwitches; i++) {
-
-        let possibleDoors = path.slice(1, path.length - 1).filter(p => !maze[p.row][p.col].hasDoor);
-
-        if (possibleDoors.length === 0) break;
-
-        shuffle(possibleDoors);
-
-        let placed = false;
-
-        for (let dCell of possibleDoors) {
-
-          let visited = new Set();
-
-          let queue = [{row: START.row, col: START.col}];
-
-          visited.add(`${START.row},${START.col}`);
-
-          while (queue.length) {
-
-            let {row, col} = queue.shift();
-
-            let dirs = ['t','r','b','l'];
-
-            for (let d of dirs) {
-
-              let nr = row, nc = col;
-
-              if (d === 't') nr--;
-
-              if (d === 'r') nc++;
-
-              if (d === 'b') nr++;
-
-              if (d === 'l') nc--;
-
-              if (nr >= 0 && nr < size && nc >= 0 && nc < size && !maze[row][col].walls[d]) {
-
-                if (nr === dCell.row && nc === dCell.col) continue;
-
-                let key = `${nr},${nc}`;
-
-                if (!visited.has(key)) {
-
-                  visited.add(key);
-
-                  queue.push({row: nr, col: nc});
-
-                }
-
-              }
-
-            }
-
-          }
-
-          let reachableDeadEnds = deadEnds.filter(de => visited.has(`${de.row},${de.col}`) && !maze[de.row][de.col].hasSwitch);
-
-          if (reachableDeadEnds.length > 0) {
-
-            shuffle(reachableDeadEnds);
-
-            let switchCell = reachableDeadEnds[0];
-
-            maze[switchCell.row][switchCell.col].hasSwitch = true;
-
-            maze[switchCell.row][switchCell.col].switchId = numPlaced;
-
-            maze[dCell.row][dCell.col].hasDoor = true;
-
-            maze[dCell.row][dCell.col].doorId = numPlaced;
-
-            numPlaced++;
-
-            placed = true;
-
-            break;
-
-          }
-
-        }
-
-        if (!placed) break;
-
-      }
-
+    // Reset current level
+    function resetLevel() {
+      if (currentLevel) loadLevel(currentLevel);
     }
-
-
 
     function drawMap(dir = START.dir) {
-
       const mapDiv = document.getElementById("map");
-
       const size = grid.length;
-
       const cellSize = Math.max(40, Math.min(60, Math.floor(400 / size)));
-
       
-
       mapDiv.style.gridTemplateColumns = `repeat(${size}, ${cellSize}px)`;
-
       mapDiv.innerHTML = "";
-
       
-
       for (let r = 0; r < size; r++) {
-
         for (let c = 0; c < size; c++) {
-
           let cell = document.createElement("div");
-
           let walls = grid[r][c].walls;
-
           cell.className = "cell";
-
           cell.style.width = cellSize + "px";
-
           cell.style.height = cellSize + "px";
-
           
-
           if (walls.t) cell.classList.add("t");
-
           if (walls.b) cell.classList.add("b");
-
           if (walls.l) cell.classList.add("l");
-
           if (walls.r) cell.classList.add("r");
-
           
-
           if (r === START.row && c === START.col) {
-
             cell.classList.add("start");
-
           }
-
           if (r === GOAL.row && c === GOAL.col) {
-
             cell.classList.add("goal");
-
-            cell.innerHTML = "🏁";
-
           }
-
           
-
           if (grid[r][c].hasSwitch) {
-
             cell.innerHTML = activatedSwitches.has(grid[r][c].switchId) ? "🔅" : "🔘";
-
             cell.style.backgroundColor = "#fff3cd";
-
           }
-
           if (grid[r][c].hasDoor) {
-
             cell.innerHTML = activatedSwitches.has(grid[r][c].doorId) ? "" : "🚪";
-
             cell.style.backgroundColor = activatedSwitches.has(grid[r][c].doorId) ? "" : "#f8d7da";
-
           }
-
           
-
           mapDiv.appendChild(cell);
-
         }
-
       }
-
       placeBall(player.row, player.col, dir);
-
     }
-
-
 
     function placeBall(row, col, dir) {
-
       let oldBall = document.querySelector('.ball');
-
       let oldArrow = document.querySelector('.direction-arrow');
-
       if (oldBall) oldBall.remove();
-
       if (oldArrow) oldArrow.remove();
-
       
-
       const mapDiv = document.getElementById("map");
-
       let cellIndex = row * grid[0].length + col;
-
       let cell = mapDiv.children[cellIndex];
-
       if (!cell) return;
-
       
-
       let ball = document.createElement("div");
-
       ball.className = "ball";
 
-
-
       let img = document.createElement("img");
-
       img.src = "/assets/pixil-gif-drawing-unscreen.gif";
-
       img.alt = "Ball";
-
       img.onerror = function() {
-
         this.style.display = 'none';
-
         let ballEmoji = document.createElement("div");
-
         ballEmoji.innerHTML = "🟡";
-
         ballEmoji.style.fontSize = "2.5em";
-
         ballEmoji.style.position = "absolute";
-
         ball.appendChild(ballEmoji);
-
       };
 
-
-
       let size = 150;
-
       img.style.width = `${size}%`;
-
       img.style.height = `${size}%`;
-
       img.style.top = `${-(size-100)/2}%`;
-
       img.style.left = `${-(size-100)/2}%`;
 
-
-
       ball.appendChild(img);
-
       cell.appendChild(ball);
-
       
-
       let arrow = document.createElement("div");
-
       arrow.className = `direction-arrow ${dir}`;
-
       arrow.innerHTML = DIR_EMOJI[dir];
-
       cell.appendChild(arrow);
-
     }
-
-
-
-    function nextLevel() {
-
-      if (animating) return;
-
-      currentLevel++;
-
-      
-
-      grid = generateMazeByLevel(currentLevel);
-
-      player = {...START};
-
-      activatedSwitches = new Set();
-
-      drawMap();
-
-      
-
-      const difficulty = getDifficultyName(currentLevel);
-
-      const size = grid.length;
-
-      setOutput(`🎉 ยินดีด้วย! ขึ้นสู่ Level ${currentLevel} - ${difficulty} (${size}x${size})`);
-
-    }
-
-
-
-    function resetGame() {
-
-      if (animating) return;
-
-      currentLevel = 1;
-
-      
-
-      grid = generateMazeByLevel(currentLevel);
-
-      player = {...START};
-
-      activatedSwitches = new Set();
-
-      drawMap();
-
-      
-
-      const difficulty = getDifficultyName(currentLevel);
-
-      setOutput(`🔄 รีเซ็ตเกมแล้ว! กลับสู่ Level 1 - ${difficulty}`);
-
-    }
-
-
 
     async function runCode() {
-
       if (animating) return;
-
       animating = true;
-
       document.getElementById('runBtn').disabled = true;
-
       document.getElementById('runBtn').textContent = '⏳ Running...';
-
       
-
       player = {...START};
-
       activatedSwitches.clear();
-
       drawMap(player.dir);
 
-
-
       const code = editor.getValue();
-
       const lines = code.split("\n").map(line => line.trim()).filter(line => line && !line.startsWith('#'));
-
       
-
       try {
-
         for (let line of lines) {
-
           if (line.startsWith("walk(")) {
-
             let steps = parseInt(line.match(/walk\((\d+)\)/)[1]);
-
             await walk(steps);
-
           } else if (line.startsWith("turn(")) {
-
             let dir = line.match(/turn\(['"](\w+)['"]\)/)[1];
-
             turn(dir);
-
             await delay(300);
-
           } else {
-
             throw new Error(`Unknown command: ${line}`);
-
           }
-
         }
-
         if (player.row === GOAL.row && player.col === GOAL.col) {
-
-          const difficulty = getDifficultyName(currentLevel);
-
-          setOutput(`🎉 ยินดีด้วย! ผ่านด่าน Level ${currentLevel} - ${difficulty} แล้ว! กด "ด่านต่อไป" เพื่อไปด่านถัดไป`);
-
+          setOutput(`🎉 Congratulations! You completed Level ${currentLevel}!`);
         } else {
-
           setOutput("😅 You didn't reach the goal. Try again!");
-
         }
-
       } catch (err) {
-
         setOutput(`❌ Error: ${err.message}`);
-
       }
-
       
-
       animating = false;
-
       document.getElementById('runBtn').disabled = false;
-
       document.getElementById('runBtn').textContent = '🚀 Run Code';
-
     }
-
-
 
     function turn(direction) {
-
       let idx = DIRS.indexOf(player.dir);
-
       if (direction === "left") idx = (idx + 3) % 4;
-
       else if (direction === "right") idx = (idx + 1) % 4;
-
       else throw new Error(`Invalid turn direction: ${direction}`);
-
       player.dir = DIRS[idx];
-
       placeBall(player.row, player.col, player.dir);
-
     }
-
-
 
     async function walk(steps) {
-
       for (let i = 0; i < steps; i++) {
-
         let { row, col, dir } = player;
-
         let nextRow = row, nextCol = col;
-
         if (dir === "up") nextRow--;
-
         if (dir === "down") nextRow++;
-
         if (dir === "left") nextCol--;
-
         if (dir === "right") nextCol++;
-
         
-
         if (nextRow < 0 || nextRow >= grid.length || nextCol < 0 || nextCol >= grid[0].length) {
-
           throw new Error("Walked out of bounds!");
-
         }
-
         
-
         if ((dir === "up" && grid[row][col].walls.t) ||
-
             (dir === "down" && grid[row][col].walls.b) ||
-
             (dir === "left" && grid[row][col].walls.l) ||
-
             (dir === "right" && grid[row][col].walls.r)) {
-
           throw new Error("Hit a wall!");
-
         }
-
         
-
         if (grid[nextRow][nextCol].hasDoor && !activatedSwitches.has(grid[nextRow][nextCol].doorId)) {
-
           throw new Error("Hit a closed door!");
-
         }
-
         
-
         player.row = nextRow;
-
         player.col = nextCol;
-
         placeBall(player.row, player.col, player.dir);
-
         
-
         if (grid[player.row][player.col].hasSwitch) {
-
           let switchId = grid[player.row][player.col].switchId;
-
           if (!activatedSwitches.has(switchId)) {
-
             activatedSwitches.add(switchId);
-
             setOutput(`🔓 Activated switch ${switchId}! Door opened.`);
-
-            drawMap(player.dir); // Redraw to update visuals
-
+            drawMap(player.dir);
           }
-
         }
-
         
-
         await delay(400);
-
       }
-
     }
-
-
 
     function delay(ms) {
-
       return new Promise(resolve => setTimeout(resolve, ms));
-
     }
-
-
 
     function setOutput(message) {
-
       document.getElementById('output').textContent = message;
-
     }
 
-
-
-    // Initialize game
-
-    grid = generateMazeByLevel(currentLevel);
-
-    player = {...START};
-
-    drawMap();
-
-    
-
-    const difficulty = getDifficultyName(currentLevel);
-
-    setOutput(`🎮 ยินดีต้อนรับสู่ Level ${currentLevel} - ${difficulty}! เขียนโค้ด Python แล้วกด 'Run Code'`);
-
+    // Load the level on page load
+    loadLevel(currentLevel);
   </script>
-
-</body>  
-
+</body>
 </html>
