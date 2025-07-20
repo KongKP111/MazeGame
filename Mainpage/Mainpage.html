@@ -1,649 +1,672 @@
-<!-- mainpage.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Python Maze Ball Game - Level</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      margin: 0;
-      min-height: 100vh;
-      padding: 20px;
-      overflow-x: hidden;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: 24px;
-      padding: 40px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      position: relative;
-      overflow: hidden;
-    }
-    .container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
-      background-size: 200% 100%;
-      animation: gradientMove 3s ease-in-out infinite;
-    }
-    @keyframes gradientMove {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-    h2 {
-      margin: 0 0 30px 0;
-      font-size: 2.5em;
-      font-weight: 700;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-align: center;
-      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    #objective {
-      background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
-      border: 1px solid rgba(103, 126, 234, 0.2);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 30px;
-      font-size: 1.1em;
-      line-height: 1.6;
-      color: #1a1a1a;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      position: relative;
-    }
-    #objective::before {
-      content: '🎯';
-      position: absolute;
-      top: -10px;
-      left: 20px;
-      font-size: 1.5em;
-      background: white;
-      padding: 5px 10px;
-      border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    .game-layout {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 40px;
-      align-items: start;
-    }
-    .maze-container {
-      position: relative;
-    }
-    .grid {
-      display: grid;
-      gap: 0; /* Remove gap for continuous bushes */
-      background: #27ae60; /* Green ground for grass theme */
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow:
-        inset 0 4px 12px rgba(0, 0, 0, 0.1),
-        0 8px 24px rgba(0, 0, 0, 0.1);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      position: relative;
-    }
-    .grid::before {
-      content: '';
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      right: -2px;
-      bottom: -2px;
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-      border-radius: 22px;
-      z-index: -1;
-      opacity: 0.3;
-    }
-    .cell {
-      width: 60px;
-      height: 60px;
-      border-radius: 0; /* Remove rounding for continuous look */
-      background: transparent; /* No block background */
-      border: none; /* Remove default border */
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2em;
-      color: #2d3748;
-      font-weight: 600;
-      overflow: visible;
-    }
-    .cell.start {
-      background: transparent;
-      animation: none;
-    }
-    .cell.goal {
-      background: transparent;
-      border-color: transparent;
-    }
-    .cell.goal img {
-      width: 130%;
-      height: 130%;
-      object-fit: contain;
-      pointer-events: none;
-      position: absolute;
-      top: -15%;
-      left: -15%;
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
-      border-radius: 50%;
-      animation: glow 2s infinite alternate;
-    }
-    @keyframes glow {
-      from { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
-      to { box-shadow: 0 0 30px rgba(255, 215, 0, 1); }
-    }
-    :root {
-      --wall-thickness: 20px; /* Adjust bush thickness for fuller look */
-    }
-    .wall {
-      position: absolute;
-      background-image: url('../assets/glass.png'); /* Bush image */
-      background-position: center;
-      z-index: 1;
-      pointer-events: none;
-    }
-    .wall.top {
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: var(--wall-thickness);
-      background-size: auto 100%; /* Scale to height, repeat horizontally */
-      background-repeat: repeat-x;
-    }
-    .wall.bottom {
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: var(--wall-thickness);
-      background-size: auto 100%; /* Scale to height, repeat horizontally */
-      background-repeat: repeat-x;
-    }
-    .wall.left {
-      left: 0;
-      top: 0;
-      width: var(--wall-thickness);
-      height: 100%;
-      background-size: 100% auto; /* Scale to width, repeat vertically */
-      background-repeat: repeat-y;
-    }
-    .wall.right {
-      right: 0;
-      top: 0;
-      width: var(--wall-thickness);
-      height: 100%;
-      background-size: 100% auto; /* Scale to width, repeat vertically */
-      background-repeat: repeat-y;
-    }
-    .ball {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      pointer-events: none;
-    }
-    .ball img {
-      object-fit: contain;
-      pointer-events: none;
-      position: absolute;
-    }
-    .direction-arrow {
-      position: absolute;
-      font-size: 1.4em;
-      font-weight: bold;
-      z-index: 4;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-    }
-    .direction-arrow.forward {
-      color: #000000;
-      text-shadow:
-        -1px -1px 0 #ffffff,
-        1px -1px 0 #ffffff,
-        -1px 1px 0 #ffffff,
-        1px 1px 0 #ffffff;
-    }
-    .direction-arrow.left {
-      color: red;
-      font-size: 1.2em;
-    }
-    .direction-arrow.right {
-      color: #6633FF;
-      font-size: 1.2em;
-    }
-    .direction-arrow.up {
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .direction-arrow.down {
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .direction-arrow.left-pos {
-      left: -10px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-    .direction-arrow.right-pos {
-      right: -10px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-    
-    /* Switch and door styling - transparent background */
-    .switch-emoji, .door-emoji {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 1.4em;
-      z-index: 2;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-      background: none !important;
-      border: none !important;
-      transition: transform 0.2s ease;
-    }
-    
-    .switch-emoji {
-      top: 45%;
-      animation: pulse 2s infinite ease-in-out;
-    }
-    
-    .door-emoji {
-      top: 55%;
-      font-size: 1.3em;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { transform: translate(-50%, -50%) scale(1); }
-      50% { transform: translate(-50%, -50%) scale(1.1); }
-    }
-    
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-top: 24px;
-      flex-wrap: wrap;
-    }
-    button {
-      padding: 12px 20px;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      font-weight: 600;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-    #editor {
-      border: 1px solid #ddd;
-      height: 300px;
-    }
-    #output {
-      margin-top: 10px;
-      font-family: monospace;
-      white-space: pre-wrap;
-      color: #333;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Python Maze Ball Game - Level</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
+            background-size: 200% 100%;
+            animation: gradientMove 3s ease-in-out infinite;
+        }
+        @keyframes gradientMove {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+        h2 {
+            margin: 0 0 30px 0;
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #objective {
+            background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+            border: 1px solid rgba(103, 126, 234, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #1a1a1a;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+        #objective::before {
+            content: '🎯';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            font-size: 1.5em;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .game-layout {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+        .maze-container {
+            position: relative;
+        }
+        .grid {
+            display: grid;
+            gap: 0; /* Remove gap for continuous bushes */
+            background: #27ae60; /* Green ground for grass theme */
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+        .grid::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            border-radius: 0; /* Remove rounding for continuous look */
+            background: transparent; /* No block background */
+            border: none; /* Remove default border */
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            color: #2d3748;
+            font-weight: 600;
+            overflow: visible;
+        }
+        .cell.start {
+            background: transparent;
+            animation: none;
+        }
+        .cell.goal {
+            background: transparent;
+            border-color: transparent;
+        }
+        .cell.goal img {
+            width: 140%;
+            height: 140%;
+            object-fit: contain;
+            pointer-events: none;
+            position: absolute;
+            top: -20%;
+            left: -20%;
+            z-index: 5;
+        }
+        .cell.goal.reached img {
+            animation: glow 1s infinite alternate;
+        }
+        @keyframes glow {
+            from {
+                filter: drop-shadow(0 0 5px yellow);
+            }
+            to {
+                filter: drop-shadow(0 0 15px yellow);
+            }
+        }
+        :root {
+            --wall-thickness: 20px; /* Adjust bush thickness for fuller look */
+        }
+        .wall {
+            position: absolute;
+            background-image: url('../assets/glass.png'); /* Bush image */
+            background-position: center;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .wall.top {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--wall-thickness);
+            background-size: auto 100%; /* Scale to height, repeat horizontally */
+            background-repeat: repeat-x;
+        }
+        .wall.bottom {
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--wall-thickness);
+            background-size: auto 100%; /* Scale to height, repeat horizontally */
+            background-repeat: repeat-x;
+        }
+        .wall.left {
+            left: 0;
+            top: 0;
+            width: var(--wall-thickness);
+            height: 100%;
+            background-size: 100% auto; /* Scale to width, repeat vertically */
+            background-repeat: repeat-y;
+        }
+        .wall.right {
+            right: 0;
+            top: 0;
+            width: var(--wall-thickness);
+            height: 100%;
+            background-size: 100% auto; /* Scale to width, repeat vertically */
+            background-repeat: repeat-y;
+        }
+        .ball {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .ball img {
+            object-fit: contain;
+            pointer-events: none;
+            position: absolute;
+        }
+        .direction-arrow {
+            position: absolute;
+            font-size: 1.4em;
+            font-weight: bold;
+            z-index: 4;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        .direction-arrow.forward {
+            color: #000000;
+            text-shadow: -1px -1px 0 #ffffff, 1px -1px 0 #ffffff, -1px 1px 0 #ffffff, 1px 1px 0 #ffffff;
+        }
+        .direction-arrow.left {
+            color: red;
+            font-size: 1.2em;
+        }
+        .direction-arrow.right {
+            color: #6633FF;
+            font-size: 1.2em;
+        }
+        .direction-arrow.up {
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .direction-arrow.down {
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .direction-arrow.left-pos {
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .direction-arrow.right-pos {
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        /* Switch and door styling - transparent background */
+        .switch-emoji, .door-emoji {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.4em;
+            z-index: 2;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+            background: none !important;
+            border: none !important;
+            transition: transform 0.2s ease;
+        }
+        .switch-emoji {
+            top: 45%;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        .switch-emoji img {
+            width: 1.5em;
+            height: 1.5em;
+            object-fit: contain;
+        }
+        .door-emoji {
+            top: -20%;
+            left: -20%;
+            transform: none;
+        }
+        .door-emoji img {
+            width: 140%;
+            height: 140%;
+            object-fit: contain;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        #editor {
+            border: 1px solid #ddd;
+            height: 300px;
+        }
+        #output {
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            color: #333;
+        }
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        #modal .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        #modal .modal-content button {
+            margin-top: 10px;
+        }
+        .error-line {
+            background-color: rgba(255, 0, 0, 0.2) !important;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h2>🎮 Python Maze Ball Game - Level <span id="level-number"></span></h2>
-    <div id="objective">
-      <strong>🎯 Objective:</strong> Navigate the golden ball to reach the <b>🏁 finish line</b>!
-      <br>Use <code>walk(steps)</code> to move forward, <code>turn('left')</code> and <code>turn('right')</code> to change direction.
-      <br><strong>🧭 Direction:</strong> Watch the black arrow to see which way you're facing!
-      <br><strong>🔘 Switches:</strong> Step on switches to remove rocks 🪨!
-    </div>
-    <div class="game-layout">
-      <div class="maze-container">
-        <div class="grid" id="map"></div>
-      </div>
-      <div class="code-section">
-        <div class="code-header">Python Code Editor</div>
-        <div id="editor"></div>
-        <div class="controls">
-          <button id="runBtn" onclick="runCode()">🚀 Run Code</button>
-          <button onclick="window.location.href = '../Homepage/homepage.html'">🔙 Back to Homepage</button>
-          <button onclick="resetLevel()">🔄 Reset Level</button>
+    <div class="container">
+        <h2>🎮 Python Maze Ball Game - Level <span id="level-number"></span></h2>
+        <div id="objective">
+            🎯 Objective: Navigate the golden ball to reach the 🏁 finish line!<br>
+            Use walk(steps) to move forward, turn('left') and turn('right') to change direction.<br>
+            🧭 Direction: Watch the black arrow to see which way you're facing!<br>
+            🔘 Switches: Step on switches to remove rocks 🪨!
         </div>
-        <div id="output"></div>
-      </div>
+        <div class="game-layout">
+            <div class="maze-container">
+                <div id="map" class="grid"></div>
+            </div>
+            <div>
+                Python Code Editor
+                <div id="editor"></div>
+                <div class="controls">
+                    <button id="runBtn" onclick="runCode()">🚀 Run Code</button>
+                    <button onclick="window.location.href = '../Homepage/homepage.html'">🔙 Back to Homepage</button>
+                    <button onclick="resetLevel()">🔄 Reset Level</button>
+                </div>
+                <div id="output"></div>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-  <script>
-    const editor = CodeMirror(document.getElementById('editor'), {
-      mode: "python",
-      theme: "default",
-      lineNumbers: true,
-      value: "# Example:\nwalk(2)\nturn('left')\nwalk(3)"
-    });
-
-    const DIRS = ["up", "right", "down", "left"];
-    const DIR_EMOJI = {
-      "right": "▶",
-      "left": "◀",
-      "up": "▲",
-      "down": "▼"
-    };
-
-    let START, GOAL, grid, player, animating = false;
-    let currentLevel = null;
-    let activatedSwitches = new Set();
-
-    // Get level and character from URL param
-    const urlParams = new URLSearchParams(window.location.search);
-    currentLevel = urlParams.get('level') || 1; // Default to 1 if no param
-    let selectedCharacter = urlParams.get('character') || '/assets/pixil-gif-drawing-unscreen.gif'; // Default character
-    document.getElementById('level-number').textContent = currentLevel;
-
-    // Load level from JSON
-    async function loadLevel(level) {
-      try {
-        const response = await fetch(`../levels/level${level}.json`);
-        const data = await response.json();
-        START = data.start;
-        GOAL = data.goal;
-        grid = Array.from({ length: data.size }, (_, r) =>
-          Array.from({ length: data.size }, (_, c) => ({
-            walls: data.walls[r][c],
-            hasSwitch: data.switches.some(s => s.row === r && s.col === c),
-            switchId: data.switches.find(s => s.row === r && s.col === c)?.id,
-            hasDoor: data.doors.some(d => d.row === r && d.col === c),
-            doorId: data.doors.find(d => d.row === r && d.col === c)?.id
-          }))
-        );
-        player = { ...START };
-        activatedSwitches.clear();
-        drawMap();
-        setOutput(`Level ${level} loaded! Write code to solve it.`);
-      } catch (err) {
-        setOutput(`Error loading level: ${err.message}`);
-      }
-    }
-
-    // Reset current level
-    function resetLevel() {
-      if (currentLevel) loadLevel(currentLevel);
-    }
-
-    function drawMap(dir = START.dir) {
-      const mapDiv = document.getElementById("map");
-      const size = grid.length;
-      const cellSize = Math.max(40, Math.min(60, Math.floor(400 / size)));
-      
-      mapDiv.style.gridTemplateColumns = `repeat(${size}, ${cellSize}px)`;
-      mapDiv.innerHTML = "";
-      
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          let cell = document.createElement("div");
-          let walls = grid[r][c].walls;
-          cell.className = "cell";
-          cell.style.width = cellSize + "px";
-          cell.style.height = cellSize + "px";
-          
-          if (walls.t) {
-            let wallDiv = document.createElement("div");
-            wallDiv.classList.add("wall", "top");
-            cell.appendChild(wallDiv);
-          }
-          if (walls.b) {
-            let wallDiv = document.createElement("div");
-            wallDiv.classList.add("wall", "bottom");
-            cell.appendChild(wallDiv);
-          }
-          if (walls.l) {
-            let wallDiv = document.createElement("div");
-            wallDiv.classList.add("wall", "left");
-            cell.appendChild(wallDiv);
-          }
-          if (walls.r) {
-            let wallDiv = document.createElement("div");
-            wallDiv.classList.add("wall", "right");
-            cell.appendChild(wallDiv);
-          }
-          
-          if (r === START.row && c === START.col) {
-            cell.classList.add("start");
-          }
-          if (r === GOAL.row && c === GOAL.col) {
-            cell.classList.add("goal");
-            let img = document.createElement("img");
-            img.src = "/assets/checkered_flag.png"; // Path to checkered flag image
-            img.alt = "Goal";
-            img.onerror = function() {
-              this.style.display = 'none';
-              let goalEmoji = document.createElement("div");
-              goalEmoji.innerHTML = "🏁";
-              goalEmoji.style.fontSize = "2em";
-              goalEmoji.style.position = "absolute";
-              goalEmoji.style.top = "50%";
-              goalEmoji.style.left = "50%";
-              goalEmoji.style.transform = "translate(-50%, -50%)";
-              goalEmoji.style.zIndex = "2";
-              cell.appendChild(goalEmoji);
-            };
-            cell.appendChild(img);
-          }
-          
-          // Add switch with proper transparent styling
-          if (grid[r][c].hasSwitch) {
-            let switchEmoji = document.createElement("div");
-            switchEmoji.className = "switch-emoji";
-            switchEmoji.innerHTML = activatedSwitches.has(grid[r][c].switchId) ? "🔅" : "🔘";
-            cell.appendChild(switchEmoji);
-          }
-          
-          // Add door (rock) with proper transparent styling
-          if (grid[r][c].hasDoor) {
-            if (!activatedSwitches.has(grid[r][c].doorId)) {
-              let doorEmoji = document.createElement("div");
-              doorEmoji.className = "door-emoji";
-              doorEmoji.innerHTML = "🪨";
-              cell.appendChild(doorEmoji);
+    <div id="modal">
+        <div class="modal-content">
+            <h2>Congratulations, you passed!</h2>
+            <button onclick="nextLevel()">Next Level</button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script>
+        const DIRS = ["up", "right", "down", "left"];
+        const DIR_EMOJI = { "right": "▶", "left": "◀", "up": "▲", "down": "▼" };
+        let START, GOAL, grid, player, animating = false;
+        let currentLevel = null;
+        let activatedSwitches = new Set();
+        let highlightedLine = null;
+        // Get level and character from URL param
+        const urlParams = new URLSearchParams(window.location.search);
+        currentLevel = urlParams.get('level') || 1; // Default to 1 if no param
+        let selectedCharacter = urlParams.get('character') || '/assets/pixil-gif-drawing-unscreen.gif'; // Default character
+        document.getElementById('level-number').textContent = currentLevel;
+        // Load level from JSON
+        async function loadLevel(level) {
+            try {
+                const response = await fetch(`../levels/level${level}.json`);
+                const data = await response.json();
+                START = data.start;
+                GOAL = data.goal;
+                grid = Array.from({ length: data.size }, (_, r) => Array.from({ length: data.size }, (_, c) => ({ walls: data.walls[r][c], hasSwitch: data.switches.some(s => s.row === r && s.col === c), switchId: data.switches.find(s => s.row === r && s.col === c)?.id, hasDoor: data.doors.some(d => d.row === r && d.col === c), doorId: data.doors.find(d => d.row === r && d.col === c)?.id })));
+                player = { ...START };
+                activatedSwitches.clear();
+                drawMap();
+                setOutput(`Level ${level} loaded! Write code to solve it.`);
+            } catch (err) {
+                setOutput(`Error loading level: ${err.message}`);
             }
-          }
-          
-          mapDiv.appendChild(cell);
         }
-      }
-      placeBall(player.row, player.col, dir);
-    }
-
-    function getPositionClass(d) {
-      if (d === "left") return "left-pos";
-      if (d === "right") return "right-pos";
-      return d;
-    }
-
-    function placeBall(row, col, dir) {
-      let oldBall = document.querySelector('.ball');
-      let oldArrows = document.querySelectorAll('.direction-arrow');
-      oldArrows.forEach(arrow => arrow.remove());
-      if (oldBall) oldBall.remove();
-      
-      const mapDiv = document.getElementById("map");
-      let cellIndex = row * grid[0].length + col;
-      let cell = mapDiv.children[cellIndex];
-      if (!cell) return;
-      
-      let ball = document.createElement("div");
-      ball.className = "ball";
-
-      let img = document.createElement("img");
-      img.src = selectedCharacter;
-      img.alt = "Ball";
-      img.onerror = function() {
-        this.style.display = 'none';
-        let ballEmoji = document.createElement("div");
-        ballEmoji.innerHTML = "🟡";
-        ballEmoji.style.fontSize = "2.5em";
-        ballEmoji.style.position = "absolute";
-        ball.appendChild(ballEmoji);
-      };
-
-      let size = 150;
-      img.style.width = `${size}%`;
-      img.style.height = `${size}%`;
-      img.style.top = `${-(size-100)/2}%`;
-      img.style.left = `${-(size-100)/2}%`;
-
-      ball.appendChild(img);
-      cell.appendChild(ball);
-
-      const dirIndex = DIRS.indexOf(dir);
-      const forwardDir = dir;
-      const leftDir = DIRS[(dirIndex + 3) % 4];
-      const rightDir = DIRS[(dirIndex + 1) % 4];
-
-      // Create forward arrow (black with white frame)
-      let forwardArrow = document.createElement("div");
-      forwardArrow.className = `direction-arrow forward ${getPositionClass(forwardDir)}`;
-      forwardArrow.innerHTML = DIR_EMOJI[forwardDir];
-      cell.appendChild(forwardArrow);
-
-      // Create left arrow (red)
-      let leftArrow = document.createElement("div");
-      leftArrow.className = `direction-arrow left ${getPositionClass(leftDir)}`;
-      leftArrow.innerHTML = DIR_EMOJI[leftDir];
-      cell.appendChild(leftArrow);
-
-      // Create right arrow (green)
-      let rightArrow = document.createElement("div");
-      rightArrow.className = `direction-arrow right ${getPositionClass(rightDir)}`;
-      rightArrow.innerHTML = DIR_EMOJI[rightDir];
-      cell.appendChild(rightArrow);
-    }
-
-    async function runCode() {
-      if (animating) return;
-      animating = true;
-      document.getElementById('runBtn').disabled = true;
-      document.getElementById('runBtn').textContent = '⏳ Running...';
-      
-      player = {...START};
-      activatedSwitches.clear();
-      drawMap(player.dir);
-
-      const code = editor.getValue();
-      const lines = code.split("\n").map(line => line.trim()).filter(line => line && !line.startsWith('#'));
-      
-      try {
-        for (let line of lines) {
-          if (line.startsWith("walk(")) {
-            let steps = parseInt(line.match(/walk\((\d+)\)/)[1]);
-            await walk(steps);
-          } else if (line.startsWith("turn(")) {
-            let dir = line.match(/turn\(['"](\w+)['"]\)/)[1];
-            turn(dir);
-            await delay(300);
-          } else {
-            throw new Error(`Unknown command: ${line}`);
-          }
+        // Reset current level
+        function resetLevel() {
+            if (currentLevel) loadLevel(currentLevel);
         }
-        if (player.row === GOAL.row && player.col === GOAL.col) {
-          setOutput(`🎉 Congratulations! You completed Level ${currentLevel}!`);
-        } else {
-          setOutput("😅 You didn't reach the goal. Try again!");
+        function drawMap(dir = START.dir) {
+            const mapDiv = document.getElementById("map");
+            const size = grid.length;
+            const cellSize = Math.max(40, Math.min(60, Math.floor(400 / size)));
+            mapDiv.style.gridTemplateColumns = `repeat(${size}, ${cellSize}px)`;
+            mapDiv.innerHTML = "";
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    let cell = document.createElement("div");
+                    let walls = grid[r][c].walls;
+                    cell.className = "cell";
+                    if (r === GOAL.row && c === GOAL.col) {
+                        cell.classList.add("goal");
+                    }
+                    cell.style.width = cellSize + "px";
+                    cell.style.height = cellSize + "px";
+                    if (walls.t) { let wallDiv = document.createElement("div"); wallDiv.classList.add("wall", "top"); cell.appendChild(wallDiv); }
+                    if (walls.b) { let wallDiv = document.createElement("div"); wallDiv.classList.add("wall", "bottom"); cell.appendChild(wallDiv); }
+                    if (walls.l) { let wallDiv = document.createElement("div"); wallDiv.classList.add("wall", "left"); cell.appendChild(wallDiv); }
+                    if (walls.r) { let wallDiv = document.createElement("div"); wallDiv.classList.add("wall", "right"); cell.appendChild(wallDiv); }
+                    if (r === START.row && c === START.col) { cell.classList.add("start"); }
+                    if (r === GOAL.row && c === GOAL.col) {
+                        let img = document.createElement("img");
+                        img.src = "/assets/Door-gif-drawing-unscreen.gif"; // Path to checkered flag image
+                        img.alt = "Goal";
+                        img.onerror = function() {
+                            this.style.display = 'none';
+                            let goalEmoji = document.createElement("div");
+                            goalEmoji.innerHTML = "🏁";
+                            goalEmoji.style.fontSize = "3em";
+                            goalEmoji.style.position = "absolute";
+                            goalEmoji.style.top = "50%";
+                            goalEmoji.style.left = "50%";
+                            goalEmoji.style.transform = "translate(-50%, -50%)";
+                            goalEmoji.style.zIndex = "2";
+                            cell.appendChild(goalEmoji);
+                        };
+                        cell.appendChild(img);
+                    }
+                    // Add switch with proper transparent styling
+                    if (grid[r][c].hasSwitch) {
+                        let switchEmoji = document.createElement("div");
+                        switchEmoji.className = "switch-emoji";
+                        if (activatedSwitches.has(grid[r][c].switchId)) {
+                            switchEmoji.innerHTML = "🔅";
+                        } else {
+                            switchEmoji.innerHTML = '<img src="/assets/Bone-removebg-preview-removebg-preview.png" alt="bone">';
+                        }
+                        cell.appendChild(switchEmoji);
+                    }
+                    // Add door (rock) with proper transparent styling
+                    if (grid[r][c].hasDoor) {
+                        if (!activatedSwitches.has(grid[r][c].doorId)) {
+                            let doorEmoji = document.createElement("div");
+                            doorEmoji.className = "door-emoji";
+                            let img = document.createElement("img");
+                            img.src = "/assets/Dog-drawing-1--unscreen.gif";
+                            img.alt = "fat dog";
+                            doorEmoji.appendChild(img);
+                            cell.appendChild(doorEmoji);
+                        }
+                    }
+                    mapDiv.appendChild(cell);
+                }
+            }
+            placeBall(player.row, player.col, dir);
         }
-      } catch (err) {
-        setOutput(`❌ Error: ${err.message}`);
-      }
-      
-      animating = false;
-      document.getElementById('runBtn').disabled = false;
-      document.getElementById('runBtn').textContent = '🚀 Run Code';
-    }
-
-    function turn(direction) {
-      let idx = DIRS.indexOf(player.dir);
-      if (direction === "left") idx = (idx + 3) % 4;
-      else if (direction === "right") idx = (idx + 1) % 4;
-      else throw new Error(`Invalid turn direction: ${direction}`);
-      player.dir = DIRS[idx];
-      placeBall(player.row, player.col, player.dir);
-    }
-
-    async function walk(steps) {
-      for (let i = 0; i < steps; i++) {
-        let { row, col, dir } = player;
-        let nextRow = row, nextCol = col;
-        if (dir === "up") nextRow--;
-        if (dir === "down") nextRow++;
-        if (dir === "left") nextCol--;
-        if (dir === "right") nextCol++;
-        
-        if (nextRow < 0 || nextRow >= grid.length || nextCol < 0 || nextCol >= grid[0].length) {
-          throw new Error("Walked out of bounds!");
+        function getPositionClass(d) {
+            if (d === "left") return "left-pos";
+            if (d === "right") return "right-pos";
+            return d;
         }
-        
-        if ((dir === "up" && grid[row][col].walls.t) ||
-            (dir === "down" && grid[row][col].walls.b) ||
-            (dir === "left" && grid[row][col].walls.l) ||
-            (dir === "right" && grid[row][col].walls.r)) {
-          throw new Error("Hit a wall!");
+        function placeBall(row, col, dir) {
+            let oldBall = document.querySelector('.ball');
+            let oldArrows = document.querySelectorAll('.direction-arrow');
+            oldArrows.forEach(arrow => arrow.remove());
+            if (oldBall) oldBall.remove();
+            const mapDiv = document.getElementById("map");
+            let cellIndex = row * grid[0].length + col;
+            let cell = mapDiv.children[cellIndex];
+            if (!cell) return;
+            let ball = document.createElement("div");
+            ball.className = "ball";
+            let img = document.createElement("img");
+            img.src = selectedCharacter;
+            img.alt = "Ball";
+            img.onerror = function() {
+                this.style.display = 'none';
+                let ballEmoji = document.createElement("div");
+                ballEmoji.innerHTML = "🟡";
+                ballEmoji.style.fontSize = "2em";
+                ballEmoji.style.position = "absolute";
+                ball.appendChild(ballEmoji);
+            };
+            let size = 100;
+            img.style.width = `${size}%`;
+            img.style.height = `${size}%`;
+            img.style.top = `${-(size-100)/2}%`;
+            img.style.left = `${-(size-100)/2}%`;
+            ball.appendChild(img);
+            cell.appendChild(ball);
+            const dirIndex = DIRS.indexOf(dir);
+            const forwardDir = dir;
+            const leftDir = DIRS[(dirIndex + 3) % 4];
+            const rightDir = DIRS[(dirIndex + 1) % 4];
+            // Create forward arrow (black with white frame)
+            let forwardArrow = document.createElement("div");
+            forwardArrow.className = `direction-arrow forward ${getPositionClass(forwardDir)}`;
+            forwardArrow.innerHTML = DIR_EMOJI[forwardDir];
+            cell.appendChild(forwardArrow);
+            // Create left arrow (red)
+            let leftArrow = document.createElement("div");
+            leftArrow.className = `direction-arrow left ${getPositionClass(leftDir)}`;
+            leftArrow.innerHTML = DIR_EMOJI[leftDir];
+            cell.appendChild(leftArrow);
+            // Create right arrow (green)
+            let rightArrow = document.createElement("div");
+            rightArrow.className = `direction-arrow right ${getPositionClass(rightDir)}`;
+            rightArrow.innerHTML = DIR_EMOJI[rightDir];
+            cell.appendChild(rightArrow);
         }
-        
-        if (grid[nextRow][nextCol].hasDoor && !activatedSwitches.has(grid[nextRow][nextCol].doorId)) {
-          throw new Error("Hit a rock! Activate the switch first.");
+        function showBubble(row, col) {
+            const mapDiv = document.getElementById("map");
+            let cellIndex = row * grid[0].length + col;
+            let cell = mapDiv.children[cellIndex];
+            if (!cell) return;
+            let bubble = document.createElement("div");
+            bubble.style.position = "absolute";
+            bubble.style.top = "-40px";
+            bubble.style.left = "50%";
+            bubble.style.transform = "translateX(-50%)";
+            bubble.style.background = "white";
+            bubble.style.border = "1px solid black";
+            bubble.style.padding = "5px";
+            bubble.style.borderRadius = "10px";
+            bubble.style.zIndex = "20";
+            bubble.style.fontSize = "1.5em";
+            bubble.innerHTML = "🦴";
+            cell.appendChild(bubble);
+            setTimeout(() => bubble.remove(), 2000);
         }
-        
-        player.row = nextRow;
-        player.col = nextCol;
-        placeBall(player.row, player.col, player.dir);
-        
-        if (grid[player.row][player.col].hasSwitch) {
-          let switchId = grid[player.row][player.col].switchId;
-          if (!activatedSwitches.has(switchId)) {
-            activatedSwitches.add(switchId);
-            setOutput(`🔓 Activated switch ${switchId}! Rock removed.`);
+        async function runCode() {
+            if (animating) return;
+            animating = true;
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('runBtn').textContent = '⏳ Running...';
+            if (highlightedLine !== null) {
+                editor.removeLineClass(highlightedLine, 'background', 'error-line');
+                highlightedLine = null;
+            }
+            player = {...START};
+            activatedSwitches.clear();
             drawMap(player.dir);
-          }
+            const code = editor.getValue();
+            const allLines = code.split("\n");
+            let currentLineIndex;
+            try {
+                for (let i = 0; i < allLines.length; i++) {
+                    let line = allLines[i].trim();
+                    if (!line || line.startsWith('#')) continue;
+                    currentLineIndex = i;
+                    if (line.startsWith("walk(")) {
+                        let stepsMatch = line.match(/walk\(\s*(\d+)\s*\)/);
+                        if (!stepsMatch) throw new Error(`Invalid walk command: ${line}`);
+                        let steps = parseInt(stepsMatch[1]);
+                        await walk(steps);
+                    } else if (line.startsWith("turn(")) {
+                        let dirMatch = line.match(/turn\(\s*['"](\w+)['"]\s*\)/);
+                        if (!dirMatch) throw new Error(`Invalid turn command: ${line}`);
+                        let dir = dirMatch[1];
+                        turn(dir);
+                        await delay(300);
+                    } else {
+                        throw new Error(`Unknown command: ${line}`);
+                    }
+                }
+                if (player.row === GOAL.row && player.col === GOAL.col) {
+                    setOutput(`🎉 Congratulations! You completed Level ${currentLevel}!`);
+                    document.getElementById('modal').style.display = 'flex';
+                    const mapDiv = document.getElementById("map");
+                    let goalIndex = GOAL.row * grid[0].length + GOAL.col;
+                    let goalCell = mapDiv.children[goalIndex];
+                    goalCell.classList.add('reached');
+                } else {
+                    setOutput("😅 You didn't reach the goal. Try again!");
+                }
+            } catch (err) {
+                setOutput(`❌ Error: ${err.message}`);
+                highlightedLine = currentLineIndex;
+                editor.addLineClass(currentLineIndex, 'background', 'error-line');
+            }
+            animating = false;
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('runBtn').textContent = '🚀 Run Code';
         }
-        
-        await delay(400);
-      }
-    }
-
-    function delay(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    function setOutput(message) {
-      document.getElementById('output').textContent = message;
-    }
-
-    // Load the level on page load
-    loadLevel(currentLevel);
-  </script>
+        function turn(direction) {
+            let idx = DIRS.indexOf(player.dir);
+            if (direction === "left") idx = (idx + 3) % 4;
+            else if (direction === "right") idx = (idx + 1) % 4;
+            else throw new Error(`Invalid turn direction: ${direction}`);
+            player.dir = DIRS[idx];
+            placeBall(player.row, player.col, player.dir);
+        }
+        async function walk(steps) {
+            for (let i = 0; i < steps; i++) {
+                let { row, col, dir } = player;
+                let nextRow = row, nextCol = col;
+                if (dir === "up") nextRow--;
+                if (dir === "down") nextRow++;
+                if (dir === "left") nextCol--;
+                if (dir === "right") nextCol++;
+                if (nextRow < 0 || nextRow >= grid.length || nextCol < 0 || nextCol >= grid[0].length) {
+                    throw new Error("Walked out of bounds!");
+                }
+                if ((dir === "up" && grid[row][col].walls.t) || (dir === "down" && grid[row][col].walls.b) || (dir === "left" && grid[row][col].walls.l) || (dir === "right" && grid[row][col].walls.r)) {
+                    throw new Error("Hit a wall!");
+                }
+                if (grid[nextRow][nextCol].hasDoor && !activatedSwitches.has(grid[nextRow][nextCol].doorId)) {
+                    showBubble(nextRow, nextCol);
+                    throw new Error("Hit a Fat Dog! pick up the Bone first.");
+                }
+                player.row = nextRow;
+                player.col = nextCol;
+                placeBall(player.row, player.col, player.dir);
+                if (grid[player.row][player.col].hasSwitch) {
+                    let switchId = grid[player.row][player.col].switchId;
+                    if (!activatedSwitches.has(switchId)) {
+                        activatedSwitches.add(switchId);
+                        setOutput(`🔓 Activated switch ${switchId}! Rock removed.`);
+                        drawMap(player.dir);
+                    }
+                }
+                await delay(400);
+            }
+        }
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        function setOutput(message) {
+            document.getElementById('output').textContent = message;
+        }
+        function nextLevel() {
+            window.location.href = `?level=${parseInt(currentLevel) + 1}&character=${selectedCharacter}`;
+        }
+        const editor = CodeMirror(document.getElementById('editor'), {
+            mode: "python",
+            theme: "default",
+            lineNumbers: true,
+            value: "# Example:\nwalk(2)\nturn('left')\nwalk(3)"
+        });
+        // Load the level on page load
+        loadLevel(currentLevel);
+    </script>
 </body>
 </html>
