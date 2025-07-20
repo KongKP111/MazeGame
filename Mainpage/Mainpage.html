@@ -251,6 +251,36 @@
       top: 50%;
       transform: translateY(-50%);
     }
+    
+    /* Switch and door styling - transparent background */
+    .switch-emoji, .door-emoji {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.4em;
+      z-index: 2;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+      background: none !important;
+      border: none !important;
+      transition: transform 0.2s ease;
+    }
+    
+    .switch-emoji {
+      top: 45%;
+      animation: pulse 2s infinite ease-in-out;
+    }
+    
+    .door-emoji {
+      top: 55%;
+      font-size: 1.3em;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.1); }
+    }
+    
     .controls {
       display: flex;
       align-items: center;
@@ -288,7 +318,7 @@
       <strong>🎯 Objective:</strong> Navigate the golden ball to reach the <b>🏁 finish line</b>!
       <br>Use <code>walk(steps)</code> to move forward, <code>turn('left')</code> and <code>turn('right')</code> to change direction.
       <br><strong>🧭 Direction:</strong> Watch the black arrow to see which way you're facing!
-      <br><strong>🔘 Switches:</strong> Step on switches to open corresponding doors 🚪!
+      <br><strong>🔘 Switches:</strong> Step on switches to remove rocks 🪨!
     </div>
     <div class="game-layout">
       <div class="maze-container">
@@ -416,18 +446,31 @@
               goalEmoji.innerHTML = "🏁";
               goalEmoji.style.fontSize = "2em";
               goalEmoji.style.position = "absolute";
+              goalEmoji.style.top = "50%";
+              goalEmoji.style.left = "50%";
+              goalEmoji.style.transform = "translate(-50%, -50%)";
+              goalEmoji.style.zIndex = "2";
               cell.appendChild(goalEmoji);
             };
             cell.appendChild(img);
           }
           
+          // Add switch with proper transparent styling
           if (grid[r][c].hasSwitch) {
-            cell.innerHTML = activatedSwitches.has(grid[r][c].switchId) ? "🔅" : "🔘";
-            cell.style.backgroundColor = "#fff3cd";
+            let switchEmoji = document.createElement("div");
+            switchEmoji.className = "switch-emoji";
+            switchEmoji.innerHTML = activatedSwitches.has(grid[r][c].switchId) ? "🔅" : "🔘";
+            cell.appendChild(switchEmoji);
           }
+          
+          // Add door (rock) with proper transparent styling
           if (grid[r][c].hasDoor) {
-            cell.innerHTML = activatedSwitches.has(grid[r][c].doorId) ? "" : "🚪";
-            cell.style.backgroundColor = activatedSwitches.has(grid[r][c].doorId) ? "" : "#f8d7da";
+            if (!activatedSwitches.has(grid[r][c].doorId)) {
+              let doorEmoji = document.createElement("div");
+              doorEmoji.className = "door-emoji";
+              doorEmoji.innerHTML = "🪨";
+              cell.appendChild(doorEmoji);
+            }
           }
           
           mapDiv.appendChild(cell);
@@ -571,7 +614,7 @@
         }
         
         if (grid[nextRow][nextCol].hasDoor && !activatedSwitches.has(grid[nextRow][nextCol].doorId)) {
-          throw new Error("Hit a closed door!");
+          throw new Error("Hit a rock! Activate the switch first.");
         }
         
         player.row = nextRow;
@@ -582,7 +625,7 @@
           let switchId = grid[player.row][player.col].switchId;
           if (!activatedSwitches.has(switchId)) {
             activatedSwitches.add(switchId);
-            setOutput(`🔓 Activated switch ${switchId}! Door opened.`);
+            setOutput(`🔓 Activated switch ${switchId}! Rock removed.`);
             drawMap(player.dir);
           }
         }
