@@ -93,8 +93,8 @@
         }
         .grid {
             display: grid;
-            gap: 0; /* Remove gap for continuous bushes */
-            background: #27ae60; /* Green ground for grass theme */
+            gap: 0;
+            background: #27ae60;
             border-radius: 20px;
             padding: 20px;
             box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.1);
@@ -116,9 +116,9 @@
         .cell {
             width: 60px;
             height: 60px;
-            border-radius: 0; /* Remove rounding for continuous look */
-            background: transparent; /* No block background */
-            border: none; /* Remove default border */
+            border-radius: 0;
+            background: transparent;
+            border: none;
             position: relative;
             display: flex;
             align-items: center;
@@ -158,11 +158,11 @@
             }
         }
         :root {
-            --wall-thickness: 20px; /* Adjust bush thickness for fuller look */
+            --wall-thickness: 20px;
         }
         .wall {
             position: absolute;
-            background-image: url('../assets/glass.png'); /* Bush image */
+            background-image: url('../assets/glass.png');
             background-position: center;
             z-index: 1;
             pointer-events: none;
@@ -172,7 +172,7 @@
             left: 0;
             width: 100%;
             height: var(--wall-thickness);
-            background-size: auto 100%; /* Scale to height, repeat horizontally */
+            background-size: auto 100%;
             background-repeat: repeat-x;
         }
         .wall.bottom {
@@ -180,7 +180,7 @@
             left: 0;
             width: 100%;
             height: var(--wall-thickness);
-            background-size: auto 100%; /* Scale to height, repeat horizontally */
+            background-size: auto 100%;
             background-repeat: repeat-x;
         }
         .wall.left {
@@ -188,7 +188,7 @@
             top: 0;
             width: var(--wall-thickness);
             height: 100%;
-            background-size: 100% auto; /* Scale to width, repeat vertically */
+            background-size: 100% auto;
             background-repeat: repeat-y;
         }
         .wall.right {
@@ -196,7 +196,7 @@
             top: 0;
             width: var(--wall-thickness);
             height: 100%;
-            background-size: 100% auto; /* Scale to width, repeat vertically */
+            background-size: 100% auto;
             background-repeat: repeat-y;
         }
         .ball {
@@ -215,6 +215,16 @@
             object-fit: contain;
             pointer-events: none;
             position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        .ball img.capybara {
+            width: 140%;
+            height: 140%;
+            top: -20%;
+            left: -20%;
         }
         .direction-arrow {
             position: absolute;
@@ -255,7 +265,6 @@
             top: 50%;
             transform: translateY(-50%);
         }
-        /* Switch and door styling - transparent background */
         .switch-emoji, .door-emoji {
             position: absolute;
             top: 50%;
@@ -357,7 +366,7 @@
             🎯 Objective: Navigate the golden ball to reach the 🏁 finish line!<br>
             Use walk(steps) to move forward, turn('left') and turn('right') to change direction.<br>
             🧭 Direction: Watch the black arrow to see which way you're facing!<br>
-            🔘 Switches: Step on switches to remove rocks 🪨!
+            🔘 Switches: Step on switches to remove fat dogs 🐶!
         </div>
         <div class="game-layout">
             <div class="maze-container">
@@ -390,31 +399,118 @@
         let currentLevel = null;
         let activatedSwitches = new Set();
         let highlightedLine = null;
+
         // Get level and character from URL param
         const urlParams = new URLSearchParams(window.location.search);
-        currentLevel = urlParams.get('level') || 1; // Default to 1 if no param
-        let selectedCharacter = urlParams.get('character') || '/assets/pixil-gif-drawing-unscreen.gif'; // Default character
+        currentLevel = parseInt(urlParams.get('level')) || 1;
+        let selectedCharacter = urlParams.get('character') || '/assets/pixil-gif-drawing-unscreen.gif';
         document.getElementById('level-number').textContent = currentLevel;
+
+        // Validate JSON data structure
+        function validateLevelData(data) {
+            if (!data || typeof data !== 'object') {
+                throw new Error("Invalid level data: JSON is empty or not an object");
+            }
+            if (!data.start || !data.goal || !data.walls || !data.switches || !data.doors || !data.size) {
+                throw new Error("Missing required fields: start, goal, walls, switches, doors, or size");
+            }
+            if (!Number.isInteger(data.size) || data.size <= 0) {
+                throw new Error("Invalid size: must be a positive integer");
+            }
+            if (!Array.isArray(data.walls) || data.walls.length !== data.size) {
+                throw new Error(`Invalid walls: must be an array of length ${data.size}`);
+            }
+            for (let i = 0; i < data.walls.length; i++) {
+                if (!Array.isArray(data.walls[i]) || data.walls[i].length !== data.size) {
+                    throw new Error(`Invalid walls: row ${i} must be an array of length ${data.size}`);
+                }
+                for (let j = 0; j < data.walls[i].length; j++) {
+                    if (!data.walls[i][j] || typeof data.walls[i][j] !== 'object') {
+                        throw new Error(`Invalid walls: cell at [${i}][${j}] must be an object`);
+                    }
+                    if (!['t', 'b', 'l', 'r'].every(key => typeof data.walls[i][j][key] === 'boolean')) {
+                        throw new Error(`Invalid walls: cell at [${i}][${j}] must have boolean t, b, l, r properties`);
+                    }
+                }
+            }
+            if (!Array.isArray(data.switches) || !Array.isArray(data.doors)) {
+                throw new Error("Switches and doors must be arrays");
+            }
+            return true;
+        }
+
+        // Randomize switches (bones) and doors (fat dogs) for levels 3 and above
+        function randomizeSwitchesAndDoors(data) {
+            if (currentLevel >= 3) {
+                let numPairs = Math.min(currentLevel - 2, 3); // 1 pair for level 3, 2 for 4, 3 for 5+
+                let switches = [];
+                let doors = [];
+                let usedPositions = new Set([`${data.start.row},${data.start.col}`, `${data.goal.row},${data.goal.col}`]);
+                for (let id = 1; id <= numPairs; id++) {
+                    let swRow, swCol;
+                    do {
+                        swRow = Math.floor(Math.random() * data.size);
+                        swCol = Math.floor(Math.random() * data.size);
+                    } while (usedPositions.has(`${swRow},${swCol}`));
+                    usedPositions.add(`${swRow},${swCol}`);
+                    switches.push({ row: swRow, col: swCol, id: id });
+
+                    let drRow, drCol;
+                    do {
+                        drRow = Math.floor(Math.random() * data.size);
+                        drCol = Math.floor(Math.random() * data.size);
+                    } while (usedPositions.has(`${drRow},${drCol}`));
+                    usedPositions.add(`${drRow},${drCol}`);
+                    doors.push({ row: drRow, col: drCol, id: id });
+                }
+                data.switches = switches;
+                data.doors = doors;
+            }
+            return data;
+        }
+
         // Load level from JSON
         async function loadLevel(level) {
             try {
                 const response = await fetch(`../levels/level${level}.json`);
-                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}: Could not load level${level}.json`);
+                }
+                let data = await response.json();
+                validateLevelData(data);
+                data = randomizeSwitchesAndDoors(data);
                 START = data.start;
                 GOAL = data.goal;
-                grid = Array.from({ length: data.size }, (_, r) => Array.from({ length: data.size }, (_, c) => ({ walls: data.walls[r][c], hasSwitch: data.switches.some(s => s.row === r && s.col === c), switchId: data.switches.find(s => s.row === r && s.col === c)?.id, hasDoor: data.doors.some(d => d.row === r && d.col === c), doorId: data.doors.find(d => d.row === r && d.col === c)?.id })));
+                grid = Array.from({ length: data.size }, (_, r) => 
+                    Array.from({ length: data.size }, (_, c) => ({
+                        walls: data.walls[r][c],
+                        hasSwitch: data.switches.some(s => s.row === r && s.col === c),
+                        switchId: data.switches.find(s => s.row === r && s.col === c)?.id,
+                        hasDoor: data.doors.some(d => d.row === r && d.col === c),
+                        doorId: data.doors.find(d => d.row === r && d.col === c)?.id
+                    }))
+                );
                 player = { ...START };
                 activatedSwitches.clear();
                 drawMap();
                 setOutput(`Level ${level} loaded! Write code to solve it.`);
             } catch (err) {
-                setOutput(`Error loading level: ${err.message}`);
+                setOutput(`❌ Error loading level ${level}: ${err.message}. Falling back to Level 1.`);
+                if (level !== 1) {
+                    currentLevel = 1;
+                    document.getElementById('level-number').textContent = currentLevel;
+                    await loadLevel(1);
+                } else {
+                    setOutput(`❌ Fatal error: Could not load Level 1: ${err.message}`);
+                }
             }
         }
+
         // Reset current level
         function resetLevel() {
             if (currentLevel) loadLevel(currentLevel);
         }
+
         function drawMap(dir = START.dir) {
             const mapDiv = document.getElementById("map");
             const size = grid.length;
@@ -438,7 +534,7 @@
                     if (r === START.row && c === START.col) { cell.classList.add("start"); }
                     if (r === GOAL.row && c === GOAL.col) {
                         let img = document.createElement("img");
-                        img.src = "/assets/Door-gif-drawing-unscreen.gif"; // Path to checkered flag image
+                        img.src = "/assets/Door-gif-drawing-unscreen.gif";
                         img.alt = "Goal";
                         img.onerror = function() {
                             this.style.display = 'none';
@@ -454,7 +550,6 @@
                         };
                         cell.appendChild(img);
                     }
-                    // Add switch with proper transparent styling
                     if (grid[r][c].hasSwitch) {
                         let switchEmoji = document.createElement("div");
                         switchEmoji.className = "switch-emoji";
@@ -465,7 +560,6 @@
                         }
                         cell.appendChild(switchEmoji);
                     }
-                    // Add door (rock) with proper transparent styling
                     if (grid[r][c].hasDoor) {
                         if (!activatedSwitches.has(grid[r][c].doorId)) {
                             let doorEmoji = document.createElement("div");
@@ -482,11 +576,13 @@
             }
             placeBall(player.row, player.col, dir);
         }
+
         function getPositionClass(d) {
             if (d === "left") return "left-pos";
             if (d === "right") return "right-pos";
             return d;
         }
+
         function placeBall(row, col, dir) {
             let oldBall = document.querySelector('.ball');
             let oldArrows = document.querySelectorAll('.direction-arrow');
@@ -501,41 +597,40 @@
             let img = document.createElement("img");
             img.src = selectedCharacter;
             img.alt = "Ball";
+            if (selectedCharacter === '/assets/BIG-CAPYBARA-gif-drawing-unscreen.gif') {
+                img.classList.add('capybara');
+            }
             img.onerror = function() {
                 this.style.display = 'none';
                 let ballEmoji = document.createElement("div");
                 ballEmoji.innerHTML = "🟡";
                 ballEmoji.style.fontSize = "2em";
                 ballEmoji.style.position = "absolute";
+                ballEmoji.style.top = "50%";
+                ballEmoji.style.left = "50%";
+                ballEmoji.style.transform = "translate(-50%, -50%)";
                 ball.appendChild(ballEmoji);
             };
-            let size = 100;
-            img.style.width = `${size}%`;
-            img.style.height = `${size}%`;
-            img.style.top = `${-(size-100)/2}%`;
-            img.style.left = `${-(size-100)/2}%`;
             ball.appendChild(img);
             cell.appendChild(ball);
             const dirIndex = DIRS.indexOf(dir);
             const forwardDir = dir;
             const leftDir = DIRS[(dirIndex + 3) % 4];
             const rightDir = DIRS[(dirIndex + 1) % 4];
-            // Create forward arrow (black with white frame)
             let forwardArrow = document.createElement("div");
             forwardArrow.className = `direction-arrow forward ${getPositionClass(forwardDir)}`;
             forwardArrow.innerHTML = DIR_EMOJI[forwardDir];
             cell.appendChild(forwardArrow);
-            // Create left arrow (red)
             let leftArrow = document.createElement("div");
             leftArrow.className = `direction-arrow left ${getPositionClass(leftDir)}`;
             leftArrow.innerHTML = DIR_EMOJI[leftDir];
             cell.appendChild(leftArrow);
-            // Create right arrow (green)
             let rightArrow = document.createElement("div");
             rightArrow.className = `direction-arrow right ${getPositionClass(rightDir)}`;
             rightArrow.innerHTML = DIR_EMOJI[rightDir];
             cell.appendChild(rightArrow);
         }
+
         function showBubble(row, col) {
             const mapDiv = document.getElementById("map");
             let cellIndex = row * grid[0].length + col;
@@ -556,6 +651,7 @@
             cell.appendChild(bubble);
             setTimeout(() => bubble.remove(), 2000);
         }
+
         async function runCode() {
             if (animating) return;
             animating = true;
@@ -610,6 +706,7 @@
             document.getElementById('runBtn').disabled = false;
             document.getElementById('runBtn').textContent = '🚀 Run Code';
         }
+
         function turn(direction) {
             let idx = DIRS.indexOf(player.dir);
             if (direction === "left") idx = (idx + 3) % 4;
@@ -618,6 +715,7 @@
             player.dir = DIRS[idx];
             placeBall(player.row, player.col, player.dir);
         }
+
         async function walk(steps) {
             for (let i = 0; i < steps; i++) {
                 let { row, col, dir } = player;
@@ -629,12 +727,13 @@
                 if (nextRow < 0 || nextRow >= grid.length || nextCol < 0 || nextCol >= grid[0].length) {
                     throw new Error("Walked out of bounds!");
                 }
-                if ((dir === "up" && grid[row][col].walls.t) || (dir === "down" && grid[row][col].walls.b) || (dir === "left" && grid[row][col].walls.l) || (dir === "right" && grid[row][col].walls.r)) {
+                if ((dir === "up" && grid[row][col].walls.t) || (dir === "down" && grid[row][col].walls.b) || 
+                    (dir === "left" && grid[row][col].walls.l) || (dir === "right" && grid[row][col].walls.r)) {
                     throw new Error("Hit a wall!");
                 }
                 if (grid[nextRow][nextCol].hasDoor && !activatedSwitches.has(grid[nextRow][nextCol].doorId)) {
                     showBubble(nextRow, nextCol);
-                    throw new Error("Hit a Fat Dog! pick up the Bone first.");
+                    throw new Error("Hit a Fat Dog! Pick up the Bone first.");
                 }
                 player.row = nextRow;
                 player.col = nextCol;
@@ -643,28 +742,33 @@
                     let switchId = grid[player.row][player.col].switchId;
                     if (!activatedSwitches.has(switchId)) {
                         activatedSwitches.add(switchId);
-                        setOutput(`🔓 Activated switch ${switchId}! Rock removed.`);
+                        setOutput(`🔓 Activated switch ${switchId}! Fat dog removed.`);
                         drawMap(player.dir);
                     }
                 }
                 await delay(400);
             }
         }
+
         function delay(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
+
         function setOutput(message) {
             document.getElementById('output').textContent = message;
         }
+
         function nextLevel() {
-            window.location.href = `?level=${parseInt(currentLevel) + 1}&character=${selectedCharacter}`;
+            window.location.href = `?level=${parseInt(currentLevel) + 1}&character=${encodeURIComponent(selectedCharacter)}`;
         }
+
         const editor = CodeMirror(document.getElementById('editor'), {
             mode: "python",
             theme: "default",
             lineNumbers: true,
             value: "# Example:\nwalk(2)\nturn('left')\nwalk(3)"
         });
+
         // Load the level on page load
         loadLevel(currentLevel);
     </script>

@@ -1,4 +1,3 @@
-<!-- homepage.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -101,10 +100,18 @@
       border-radius: 10px;
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
+    #character-preview img.capybara {
+      width: 250px; /* Larger size for capybara in preview */
+    }
     .character-button img {
       width: 100%;
       height: auto;
       display: block;
+    }
+    .character-button img.capybara {
+      width: 120%; /* Slightly larger in selection */
+      position: relative;
+      left: -10%;
     }
     .character-button img, #character-preview img {
       image-rendering: pixelated;
@@ -133,12 +140,10 @@
     function initCharacterSelection() {
       const selectionDiv = document.getElementById('character-selection');
       const previewImg = document.getElementById('preview-img');
-      // สมมติว่ามีตัวละคร 4 ตัว คุณสามารถเพิ่มชื่อไฟล์หรือ ID ของตัวละครใหม่ที่นี่
-      // เช่น เพิ่ม { id: 5, name: 'New Ball', file: 'new_character.gif' },
       const characters = [
         { id: 1, name: 'little Red', file: '/assets/pixil-gif-drawing-unscreen.gif'},
         { id: 2, name: 'Mifu', file: '/assets/mifu-gif-drawing-unscreen.gif' },
-        { id: 3, name: 'Green Ball', file: 'green_ball.png' },
+        { id: 3, name: 'capybara', file: '/assets/BIG-CAPYBARA-gif-drawing-unscreen.gif' },
         { id: 4, name: 'Yellow Ball', file: 'yellow_ball.png' }
       ];
 
@@ -148,13 +153,21 @@
         const img = document.createElement('img');
         img.src = char.file;
         img.alt = char.name;
+        if (char.file === '/assets/BIG-CAPYBARA-gif-drawing-unscreen.gif') {
+          img.classList.add('capybara');
+        }
         button.appendChild(img);
         button.onclick = () => {
           document.querySelectorAll('.character-button').forEach(btn => btn.classList.remove('selected'));
           button.classList.add('selected');
-          selectedCharacter = char.file; // ส่งชื่อไฟล์ตัวละคร
+          selectedCharacter = char.file;
           previewImg.src = char.file;
           previewImg.style.display = 'block';
+          if (char.file === '/assets/BIG-CAPYBARA-gif-drawing-unscreen.gif') {
+            previewImg.classList.add('capybara');
+          } else {
+            previewImg.classList.remove('capybara');
+          }
         };
         selectionDiv.appendChild(button);
       });
@@ -171,7 +184,7 @@
             alert('Please select a character first!');
             return;
           }
-          window.location.href = `../Mainpage/mainpage.html?level=${i}&character=${selectedCharacter}`;
+          window.location.href = `../Mainpage/mainpage.html?level=${i}&character=${encodeURIComponent(selectedCharacter)}`;
         };
         selectionDiv.appendChild(button);
       }
