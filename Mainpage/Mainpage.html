@@ -18,7 +18,8 @@
             overflow-x: hidden;
         }
         .container {
-            max-width: 900px;
+            max-width: none; /* ลบขีดจำกัดสูงสุดเพื่อปรับขนาดได้ */
+            width: fit-content; /* ปรับขนาดตามเนื้อหา */
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -90,6 +91,7 @@
         }
         .maze-container {
             position: relative;
+            min-width: 0; /* อนุญาตให้ปรับขนาดได้ */
         }
         .grid {
             display: grid;
@@ -439,36 +441,6 @@
             return true;
         }
 
-        // Randomize switches (bones) and doors (fat dogs) for levels 3 and above
-        function randomizeSwitchesAndDoors(data) {
-            if (currentLevel >= 3) {
-                let numPairs = Math.min(currentLevel - 2, 3); // 1 pair for level 3, 2 for 4, 3 for 5+
-                let switches = [];
-                let doors = [];
-                let usedPositions = new Set([`${data.start.row},${data.start.col}`, `${data.goal.row},${data.goal.col}`]);
-                for (let id = 1; id <= numPairs; id++) {
-                    let swRow, swCol;
-                    do {
-                        swRow = Math.floor(Math.random() * data.size);
-                        swCol = Math.floor(Math.random() * data.size);
-                    } while (usedPositions.has(`${swRow},${swCol}`));
-                    usedPositions.add(`${swRow},${swCol}`);
-                    switches.push({ row: swRow, col: swCol, id: id });
-
-                    let drRow, drCol;
-                    do {
-                        drRow = Math.floor(Math.random() * data.size);
-                        drCol = Math.floor(Math.random() * data.size);
-                    } while (usedPositions.has(`${drRow},${drCol}`));
-                    usedPositions.add(`${drRow},${drCol}`);
-                    doors.push({ row: drRow, col: drCol, id: id });
-                }
-                data.switches = switches;
-                data.doors = doors;
-            }
-            return data;
-        }
-
         // Load level from JSON
         async function loadLevel(level) {
             try {
@@ -478,7 +450,6 @@
                 }
                 let data = await response.json();
                 validateLevelData(data);
-                data = randomizeSwitchesAndDoors(data);
                 START = data.start;
                 GOAL = data.goal;
                 grid = Array.from({ length: data.size }, (_, r) => 
@@ -513,9 +484,22 @@
 
         function drawMap(dir = START.dir) {
             const mapDiv = document.getElementById("map");
+            const container = document.querySelector('.container');
+            const mazeContainer = document.querySelector('.maze-container');
             const size = grid.length;
-            const cellSize = Math.max(40, Math.min(60, Math.floor(400 / size)));
+            const cellSize = Math.max(40, Math.min(60, Math.floor(window.innerWidth * 0.6 / size))); // ปรับขนาดเซลล์ตามหน้าจอ
+            const gridWidth = cellSize * size + 40; // ความกว้างรวม padding
+            const gridHeight = cellSize * size + 40; // ความสูงรวม padding
+
+            // ปรับขนาด container และ maze-container
+            container.style.width = `${gridWidth + 400}px`; // เพิ่ม 400px สำหรับ code editor
+            mazeContainer.style.width = `${gridWidth}px`;
+            mazeContainer.style.height = `${gridHeight}px`;
             mapDiv.style.gridTemplateColumns = `repeat(${size}, ${cellSize}px)`;
+            mapDiv.style.gridTemplateRows = `repeat(${size}, ${cellSize}px)`;
+            mapDiv.style.width = `${gridWidth}px`;
+            mapDiv.style.height = `${gridHeight}px`;
+
             mapDiv.innerHTML = "";
             for (let r = 0; r < size; r++) {
                 for (let c = 0; c < size; c++) {
@@ -525,8 +509,8 @@
                     if (r === GOAL.row && c === GOAL.col) {
                         cell.classList.add("goal");
                     }
-                    cell.style.width = cellSize + "px";
-                    cell.style.height = cellSize + "px";
+                    cell.style.width = `${cellSize}px`;
+                    cell.style.height = `${cellSize}px`;
                     if (walls.t) { let wallDiv = document.createElement("div"); wallDiv.classList.add("wall", "top"); cell.appendChild(wallDiv); }
                     if (walls.b) { let wallDiv = document.createElement("div"); wallDiv.classList.add("wall", "bottom"); cell.appendChild(wallDiv); }
                     if (walls.l) { let wallDiv = document.createElement("div"); wallDiv.classList.add("wall", "left"); cell.appendChild(wallDiv); }

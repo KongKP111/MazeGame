@@ -1,3 +1,4 @@
+
 {
   "size": 5,
   "start": {
@@ -19,18 +20,12 @@
       },
       {
         "t": true,
-        "b": true,
+        "b": false,
         "l": true,
         "r": false
       },
       {
         "t": true,
-        "b": false,
-        "l": false,
-        "r": false
-      },
-      {
-        "t": true,
         "b": true,
         "l": false,
         "r": false
@@ -39,6 +34,12 @@
         "t": true,
         "b": false,
         "l": false,
+        "r": true
+      },
+      {
+        "t": true,
+        "b": false,
+        "l": true,
         "r": true
       }
     ],
@@ -50,12 +51,6 @@
         "r": false
       },
       {
-        "t": true,
-        "b": true,
-        "l": false,
-        "r": false
-      },
-      {
         "t": false,
         "b": true,
         "l": false,
@@ -65,12 +60,18 @@
         "t": true,
         "b": false,
         "l": true,
-        "r": false
+        "r": true
       },
       {
         "t": false,
-        "b": true,
-        "l": false,
+        "b": false,
+        "l": true,
+        "r": true
+      },
+      {
+        "t": false,
+        "b": false,
+        "l": true,
         "r": true
       }
     ],
@@ -79,30 +80,30 @@
         "t": true,
         "b": false,
         "l": true,
-        "r": false
+        "r": true
       },
       {
         "t": true,
-        "b": true,
-        "l": false,
+        "b": false,
+        "l": true,
         "r": false
       },
       {
-        "t": true,
-        "b": true,
+        "t": false,
+        "b": false,
         "l": false,
         "r": true
       },
       {
         "t": false,
-        "b": true,
+        "b": false,
         "l": true,
-        "r": false
+        "r": true
       },
       {
-        "t": true,
+        "t": false,
         "b": false,
-        "l": false,
+        "l": true,
         "r": true
       }
     ],
@@ -111,30 +112,30 @@
         "t": false,
         "b": false,
         "l": true,
-        "r": false
-      },
-      {
-        "t": true,
-        "b": true,
-        "l": false,
-        "r": false
-      },
-      {
-        "t": true,
-        "b": true,
-        "l": false,
-        "r": false
-      },
-      {
-        "t": true,
-        "b": true,
-        "l": false,
-        "r": false
+        "r": true
       },
       {
         "t": false,
-        "b": true,
-        "l": false,
+        "b": false,
+        "l": true,
+        "r": true
+      },
+      {
+        "t": false,
+        "b": false,
+        "l": true,
+        "r": true
+      },
+      {
+        "t": false,
+        "b": false,
+        "l": true,
+        "r": true
+      },
+      {
+        "t": false,
+        "b": false,
+        "l": true,
         "r": true
       }
     ],
@@ -146,25 +147,25 @@
         "r": false
       },
       {
-        "t": true,
+        "t": false,
+        "b": true,
+        "l": false,
+        "r": true
+      },
+      {
+        "t": false,
+        "b": true,
+        "l": true,
+        "r": false
+      },
+      {
+        "t": false,
         "b": true,
         "l": false,
         "r": false
       },
       {
-        "t": true,
-        "b": true,
-        "l": false,
-        "r": false
-      },
-      {
-        "t": true,
-        "b": true,
-        "l": false,
-        "r": false
-      },
-      {
-        "t": true,
+        "t": false,
         "b": true,
         "l": false,
         "r": true
@@ -173,16 +174,16 @@
   ],
   "switches": [
     {
-      "row": 0,
-      "col": 1,
-      "id": 1
+      "row": 1,
+      "col": 2,
+      "id": 0
     }
   ],
   "doors": [
     {
-      "row": 3,
+      "row": 0,
       "col": 3,
-      "id": 1
+      "id": 0
     }
   ],
   "customFeatures": {}
