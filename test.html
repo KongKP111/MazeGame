@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minigame Tester</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        select, button {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        select {
+            background-color: white;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        button {
+            background: linear-gradient(135deg, #4ECDC4, #45B7D1);
+            color: white;
+            font-weight: 600;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #45B7D1, #4ECDC4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        /* --- Common Modal Styles (for all minigames) --- */
+        #minigame-modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        #minigame-modal > div { /* Content container */
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        #minigame-modal h2 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        #minigame-modal p {
+            font-size: 1.1em;
+            color: #555;
+            line-height: 1.6;
+        }
+        #minigame-modal button { /* Style for buttons inside the modal */
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        #minigame-modal button:hover {
+            background: linear-gradient(135deg, #764BA2, #667EEA);
+        }
+        /* --- Minigame1 Specific Styles (Water Color Sort) --- */
+        #minigame-modal .row { /* For top-row and bottom-row in minigame1 */
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        #minigame-modal .bottle { /* For each bottle in minigame1 */
+            width: 70px;
+            height: 140px;
+            border: 3px solid #666;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out, border-color 0.3s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #minigame-modal .bottle .liquid {
+            width: 100%;
+            height: 80%; /* Adjust as needed */
+            position: absolute;
+            bottom: 0;
+        }
+        #minigame-modal .bottle.selected {
+            transform: scale(1.1);
+            border-color: #00FF00;
+        }
+        #minigame-modal #match-label {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        /* --- Minigame2 Specific Styles (Star Matching Puzzle) --- */
+        #card-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 90px); /* Match new card width */
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .card {
+            width: 90px;
+            height: 120px;
+            background-color: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            perspective: 1000px;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card .front, .card .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            top: 0;
+            left: 0;
+        }
+        .card .front {
+            background-color: #fff;
+            color: #FFBF00; /* Gold color for stars - adjust as desired */
+            transform: rotateY(180deg); /* Initial state: rotated to be hidden */
+            border: 2px solid #FFBF00; /* Match border to star color */
+            flex-wrap: wrap; /* Allow stars to wrap */
+            align-content: center; /* Vertically distribute rows of stars */
+            padding: 5px; /* Padding inside the card */
+        }
+        .card .front span {
+            font-size: 1.3em; /* Smaller individual stars */
+            margin: 2px; /* Small spacing between stars */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1em; /* Helps center the emoji vertically in its span */
+            text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black; /* Black border/outline for stars */
+        }
+        .card .back {
+            background-color: #667EEA; /* A nice back color */
+            color: white;
+            font-weight: bold;
+            transform: rotateY(0deg); /* Initial state: visible */
+            border: 2px solid #667EEA;
+        }
+        .card.flipped {
+            transform: rotateY(180deg); /* When flipped, rotate the entire card */
+        }
+        .card.matched {
+            border-color: #4CAF50;
+            cursor: default;
+            pointer-events: none; /* Disable clicks on matched cards */
+        }
+        /* --- Minigame3 Specific Styles (Sword Pulling) --- */
+        #minigame-modal canvas {
+            border: 2px solid #667EEA;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        #minigame-modal .progress-container {
+            width: 200px;
+            height: 10px;
+            background: #ccc;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        #minigame-modal .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #4caf50, #8bc34a);
+            border-radius: 5px;
+        }
+        /* --- END OF ALL MINIGAME STYLES --- */
+    </style>
+</head>
+<body>
+    <h1>Minigame Tester</h1>
+    <div class="controls">
+        <label for="minigameSelect">Select Minigame:</label>
+        <select id="minigameSelect">
+            <option value="minigame1">Minigame 1 (Color Sort)</option>
+            <option value="minigame2">Minigame 2 (Star Match)</option>
+            <option value="minigame3" selected>Minigame 3 (Sword)</option>
+        </select>
+        <button onclick="loadAndRunSelectedMinigame()">Load & Run</button>
+    </div>
+    <script src="/components/minigame1.js"></script>
+    <script src="/components/minigame2.js"></script>
+    <!-- minigame3.js is embedded below for integration, but in production, move to /components/minigame3.js -->
+    <script>
+        // minigame3.js
+        // This script creates a popup minigame for pulling a sword from the stone using the common modal.
+        // It uses HTML canvas to draw the scene, making the sword design as similar as possible to the provided pixel art image.
+        // The sword has a brown pommel, green handle and crossguard, white blade with green edges, and a forked base.
+        // Clicks on the sword pull it out gradually, filling a progress bar. When full, show success message and close.
+
+        function showMinigame3(switchId, onSuccessCallback) {
+          // Create modal overlay
+          const modal = document.createElement('div');
+          modal.id = 'minigame-modal';
+          modal.style.display = 'flex';
+
+          // Create content container
+          const content = document.createElement('div');
+
+          // Add title
+          const title = document.createElement('h2');
+          title.textContent = 'Pull the Sword from the Stone';
+          content.appendChild(title);
+
+          // Canvas for the game scene
+          const canvas = document.createElement('canvas');
+          canvas.width = 200;
+          canvas.height = 200;
+          canvas.style.cursor = 'pointer';
+          content.appendChild(canvas);
+          const ctx = canvas.getContext('2d');
+
+          // Progress bar
+          const progressContainer = document.createElement('div');
+          progressContainer.className = 'progress-container';
+          const progressFill = document.createElement('div');
+          progressFill.className = 'progress-fill';
+          progressContainer.appendChild(progressFill);
+          content.appendChild(progressContainer);
+
+          // Instruction text
+          const instruction = document.createElement('p');
+          instruction.textContent = 'Click the sword to pull it out!';
+          content.appendChild(instruction);
+
+          // Append content to modal
+          modal.appendChild(content);
+          document.body.appendChild(modal);
+
+          // Game variables
+          let progress = 0;
+          const maxProgress = 20; // Number of clicks needed
+          let swordY = 0; // Sword pull offset (negative to pull up)
+          const pullStep = 4; // Pixels pulled per click
+
+          // Draw the scene function
+          function drawScene(showSuccess = false) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grass mound (oval shape, bright green)
+            ctx.fillStyle = '#32CD32'; // Lime green to match pixel art
+            ctx.beginPath();
+            ctx.ellipse(100, 160, 80, 40, 0, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Add some grass texture (simple lines)
+            ctx.strokeStyle = '#228B22'; // Darker green
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 20; i++) {
+              const x = Math.random() * 160 + 20;
+              const y = 140 + Math.random() * 40;
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x + Math.random() * 4 - 2, y - Math.random() * 10);
+              ctx.stroke();
+            }
+
+            // Draw stones (gray rocks)
+            ctx.fillStyle = '#808080'; // Gray
+            ctx.beginPath();
+            ctx.ellipse(100, 140, 30, 20, 0, 0, 2 * Math.PI); // Main stone
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(130, 140, 15, 10, 0, 0, 2 * Math.PI); // Small stone
+            ctx.fill();
+
+            // Add stone shadows/outlines
+            ctx.strokeStyle = '#696969';
+            ctx.stroke();
+
+            if (!showSuccess) {
+              // Draw sword (design matched to provided image: brown pommel, green handle/crossguard, white blade with green edges, forked base)
+              // Positions adjusted to stick into the stone at baseY=140
+              const baseY = 140 + swordY; // Adjust base for pulling
+
+              // Blade (white central part)
+              ctx.fillStyle = '#FFFFFF';
+              ctx.fillRect(98, baseY - 80, 4, 60); // Long thin blade
+
+              // Green edges on blade
+              ctx.fillStyle = '#00FF00';
+              ctx.fillRect(96, baseY - 80, 2, 60); // Left edge
+              ctx.fillRect(104, baseY - 80, 2, 60); // Right edge
+
+              // Forked base of blade (white with green outline)
+              ctx.fillStyle = '#FFFFFF';
+              ctx.beginPath();
+              ctx.moveTo(90, baseY - 20);
+              ctx.lineTo(98, baseY - 5);
+              ctx.lineTo(102, baseY - 5);
+              ctx.lineTo(110, baseY - 20);
+              ctx.fill();
+
+              // Green outline for fork
+              ctx.strokeStyle = '#00FF00';
+              ctx.lineWidth = 1;
+              ctx.stroke();
+
+              // Crossguard (green, wide)
+              ctx.fillStyle = '#00FF00';
+              ctx.fillRect(85, baseY - 85, 30, 5); // Horizontal crossguard
+
+              // Handle (green)
+              ctx.fillStyle = '#00FF00';
+              ctx.fillRect(98, baseY - 100, 4, 15); // Vertical handle
+
+              // Pommel (brown, triangular-ish)
+              ctx.fillStyle = '#8B4513'; // Brown
+              ctx.beginPath();
+              ctx.moveTo(98, baseY - 105);
+              ctx.lineTo(102, baseY - 105);
+              ctx.lineTo(100, baseY - 110);
+              ctx.fill();
+            } else {
+              // Fully pulled sword (drawn horizontally at bottom to match one of the example images)
+              // Rotate and position the sword lying on the grass
+              ctx.save();
+              ctx.translate(100, 170);
+              ctx.rotate(Math.PI / 2); // Horizontal
+
+              // Blade
+              ctx.fillStyle = '#FFFFFF';
+              ctx.fillRect(0, -2, 60, 4);
+
+              // Green edges
+              ctx.fillStyle = '#00FF00';
+              ctx.fillRect(0, -4, 60, 2);
+              ctx.fillRect(0, 2, 60, 2);
+
+              // Forked end
+              ctx.fillStyle = '#FFFFFF';
+              ctx.beginPath();
+              ctx.moveTo(60, -10);
+              ctx.lineTo(45, -2);
+              ctx.lineTo(45, 2);
+              ctx.lineTo(60, 10);
+              ctx.fill();
+
+              // Green outline for fork
+              ctx.strokeStyle = '#00FF00';
+              ctx.lineWidth = 1;
+              ctx.stroke();
+
+              // Crossguard
+              ctx.fillStyle = '#00FF00';
+              ctx.fillRect(-15, -15, 5, 30);
+
+              // Handle
+              ctx.fillStyle = '#00FF00';
+              ctx.fillRect(-30, -2, 15, 4);
+
+              // Pommel
+              ctx.fillStyle = '#8B4513';
+              ctx.beginPath();
+              ctx.moveTo(-30, -2);
+              ctx.lineTo(-30, 2);
+              ctx.lineTo(-35, 0);
+              ctx.fill();
+
+              ctx.restore();
+
+              // Success text (matching the congratulations image)
+              ctx.fillStyle = '#0000FF'; // Blue
+              ctx.font = 'bold 16px Arial';
+              ctx.fillText('Congratulations!', 20, 80);
+              ctx.fillText('You pulled the sword', 20, 100);
+              ctx.fillText('from the stone!', 20, 120);
+            }
+          }
+
+          // Initial draw
+          drawScene();
+
+          // Click event
+          canvas.addEventListener('click', function(event) {
+            if (progress >= maxProgress) return; // Already won
+
+            const rect = canvas.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const clickY = event.clientY - rect.top;
+
+            // Detect click on sword area (approximate bounding box)
+            if (clickX > 80 && clickX < 120 && clickY > 40 + swordY && clickY < 160 + swordY) {
+              progress++;
+              swordY -= pullStep;
+              progressFill.style.width = `${(progress / maxProgress) * 100}%`;
+              drawScene();
+
+              if (progress >= maxProgress) {
+                instruction.textContent = 'Success!';
+                drawScene(true); // Show fully pulled sword and message
+                setTimeout(() => {
+                  closeMinigame3();
+                  if (onSuccessCallback) onSuccessCallback(switchId);
+                }, 3000); // Close after 3 seconds
+              }
+            }
+          });
+        }
+
+        function closeMinigame3() {
+          const modal = document.getElementById('minigame-modal');
+          if (modal) {
+            document.body.removeChild(modal);
+          }
+        }
+    </script>
+    <script>
+        // Store references to the show and close functions for each minigame
+        // Make sure these match the global function names in your minigame JS files
+        const minigameFunctions = {
+            'minigame1': {
+                show: typeof showMinigame1 !== 'undefined' ? showMinigame1 : null,
+                close: typeof closeMinigame1 !== 'undefined' ? closeMinigame1 : null
+            },
+            'minigame2': {
+                show: typeof showMinigame2 !== 'undefined' ? showMinigame2 : null,
+                close: typeof closeMinigame2 !== 'undefined' ? closeMinigame2 : null
+            },
+            'minigame3': {
+                show: typeof showMinigame3 !== 'undefined' ? showMinigame3 : null,
+                close: typeof closeMinigame3 !== 'undefined' ? closeMinigame3 : null
+            }
+        };
+        function loadAndRunSelectedMinigame() {
+            const selectElement = document.getElementById('minigameSelect');
+            const selectedGame = selectElement.value;
+            // First, close any currently open minigame modal if it exists
+            const existingModal = document.getElementById('minigame-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            const game = minigameFunctions[selectedGame];
+            if (game && game.show) {
+                const dummySwitchId = `test-${selectedGame}-switch`; // Use a dummy ID for testing
+                console.log(`Running ${selectedGame} with ID: ${dummySwitchId}`);
+                game.show(dummySwitchId, (activatedId) => {
+                    console.log(`Minigame ${activatedId} completed! Callback triggered.`);
+                    alert(`Minigame ${activatedId} completed! Check console for callback.`);
+                });
+            } else {
+                alert(`Error: Minigame "${selectedGame}" not found or its 'show' function is not defined. Please check the minigame file and its global function name.`);
+                console.error(`Attempted to run ${selectedGame}, but its function was not found.`);
+            }
+        }
+        // Optional: Hide the modal initially if minigame JS loads and creates it by default
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('minigame-modal');
+            if (modal) {
+                modal.style.display = 'none'; // Ensure it's hidden on page load
+            }
+        });
+    </script>
+</body>
+</html>
