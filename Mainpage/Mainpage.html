@@ -6,6 +6,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <style>
+        /* Your existing CSS styles remain here */
         * {
             box-sizing: border-box;
         }
@@ -18,8 +19,8 @@
             overflow-x: hidden;
         }
         .container {
-            max-width: none; /* ลบขีดจำกัดสูงสุดเพื่อปรับขนาดได้ */
-            width: fit-content; /* ปรับขนาดตามเนื้อหา */
+            max-width: none;
+            width: fit-content;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -91,7 +92,7 @@
         }
         .maze-container {
             position: relative;
-            min-width: 0; /* อนุญาตให้ปรับขนาดได้ */
+            min-width: 0;
         }
         .grid {
             display: grid;
@@ -346,18 +347,152 @@
             align-items: center;
             justify-content: center;
         }
-        #modal .modal-content {
+        .modal-content {
             background: white;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-        #modal .modal-content button {
+        .modal-content button {
             margin-top: 10px;
         }
         .error-line {
             background-color: rgba(255, 0, 0, 0.2) !important;
+        }
+
+        /* Styles for minigame1 (Color Match Puzzle) */
+        #minigame-modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        #minigame-modal > div { /* Content container */
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        #minigame-modal h2 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        #minigame-modal p {
+            font-size: 1.1em;
+            color: #555;
+            line-height: 1.6;
+        }
+        #minigame-modal .row { /* For top-row and bottom-row */
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        #minigame-modal .bottle { /* For each bottle in minigame1 */
+            width: 70px;
+            height: 140px;
+            border: 3px solid #666;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out, border-color 0.3s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #minigame-modal .bottle .liquid {
+            width: 100%;
+            height: 80%; /* Adjust as needed */
+            position: absolute;
+            bottom: 0;
+        }
+        #minigame-modal .bottle.selected {
+            transform: scale(1.1);
+            border-color: #00ff00;
+        }
+        #minigame-modal #match-label {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        #minigame-modal button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        #minigame-modal button:hover {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+        }
+
+        /* Styles for minigame2 (Star Matching Puzzle) */
+        #card-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 80px); /* Adjust as needed */
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .card {
+            width: 80px;
+            height: 110px;
+            background-color: #eee;
+            border: 2px solid #aaa;
+            border-radius: 8px;
+            cursor: pointer;
+            perspective: 1000px; /* For 3D flip effect */
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card .front, .card .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            border-radius: 8px;
+        }
+        .card .front {
+            background-color: #fff;
+            color: #FFD700; /* Gold color for stars */
+            transform: rotateY(180deg);
+            border: 2px solid #FFD700;
+        }
+        .card .back {
+            background-color: #667eea; /* A nice back color */
+            color: white;
+            font-weight: bold;
+            border: 2px solid #667eea;
+        }
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        .card.matched {
+            border-color: #4CAF50;
+            cursor: default;
+            pointer-events: none; /* Disable clicks on matched cards */
         }
     </style>
 </head>
@@ -394,6 +529,8 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script src="/components/minigame1.js"></script>
+    <script src="/components/minigame2.js"></script>
     <script>
         const DIRS = ["up", "right", "down", "left"];
         const DIR_EMOJI = { "right": "▶", "left": "◀", "up": "▲", "down": "▼" };
@@ -407,6 +544,21 @@
         currentLevel = parseInt(urlParams.get('level')) || 1;
         let selectedCharacter = urlParams.get('character') || '/assets/pixil-gif-drawing-unscreen.gif';
         document.getElementById('level-number').textContent = currentLevel;
+
+        // Save activated switches to localStorage
+        function saveSwitches() {
+            localStorage.setItem(`level${currentLevel}_switches`, JSON.stringify([...activatedSwitches]));
+        }
+
+        // Load activated switches from localStorage
+        function loadSwitches() {
+            const saved = localStorage.getItem(`level${currentLevel}_switches`);
+            if (saved) {
+                activatedSwitches = new Set(JSON.parse(saved));
+            } else {
+                activatedSwitches = new Set();
+            }
+        }
 
         // Validate JSON data structure
         function validateLevelData(data) {
@@ -452,7 +604,7 @@
                 validateLevelData(data);
                 START = data.start;
                 GOAL = data.goal;
-                grid = Array.from({ length: data.size }, (_, r) => 
+                grid = Array.from({ length: data.size }, (_, r) =>
                     Array.from({ length: data.size }, (_, c) => ({
                         walls: data.walls[r][c],
                         hasSwitch: data.switches.some(s => s.row === r && s.col === c),
@@ -462,7 +614,7 @@
                     }))
                 );
                 player = { ...START };
-                activatedSwitches.clear();
+                loadSwitches(); // Load saved switches
                 drawMap();
                 setOutput(`Level ${level} loaded! Write code to solve it.`);
             } catch (err) {
@@ -479,7 +631,11 @@
 
         // Reset current level
         function resetLevel() {
-            if (currentLevel) loadLevel(currentLevel);
+            if (currentLevel) {
+                player = { ...START };
+                drawMap();
+                setOutput(`Level ${currentLevel} reset!`);
+            }
         }
 
         function drawMap(dir = START.dir) {
@@ -487,12 +643,11 @@
             const container = document.querySelector('.container');
             const mazeContainer = document.querySelector('.maze-container');
             const size = grid.length;
-            const cellSize = Math.max(40, Math.min(60, Math.floor(window.innerWidth * 0.6 / size))); // ปรับขนาดเซลล์ตามหน้าจอ
-            const gridWidth = cellSize * size + 40; // ความกว้างรวม padding
-            const gridHeight = cellSize * size + 40; // ความสูงรวม padding
+            const cellSize = Math.max(40, Math.min(60, Math.floor(window.innerWidth * 0.6 / size)));
+            const gridWidth = cellSize * size + 40;
+            const gridHeight = cellSize * size + 40;
 
-            // ปรับขนาด container และ maze-container
-            container.style.width = `${gridWidth + 400}px`; // เพิ่ม 400px สำหรับ code editor
+            container.style.width = `${gridWidth + 400}px`;
             mazeContainer.style.width = `${gridWidth}px`;
             mazeContainer.style.height = `${gridHeight}px`;
             mapDiv.style.gridTemplateColumns = `repeat(${size}, ${cellSize}px)`;
@@ -646,7 +801,6 @@
                 highlightedLine = null;
             }
             player = {...START};
-            activatedSwitches.clear();
             drawMap(player.dir);
             const code = editor.getValue();
             const allLines = code.split("\n");
@@ -711,13 +865,13 @@
                 if (nextRow < 0 || nextRow >= grid.length || nextCol < 0 || nextCol >= grid[0].length) {
                     throw new Error("Walked out of bounds!");
                 }
-                if ((dir === "up" && grid[row][col].walls.t) || (dir === "down" && grid[row][col].walls.b) || 
+                if ((dir === "up" && grid[row][col].walls.t) || (dir === "down" && grid[row][col].walls.b) ||
                     (dir === "left" && grid[row][col].walls.l) || (dir === "right" && grid[row][col].walls.r)) {
                     throw new Error("Hit a wall!");
                 }
                 if (grid[nextRow][nextCol].hasDoor && !activatedSwitches.has(grid[nextRow][nextCol].doorId)) {
                     showBubble(nextRow, nextCol);
-                    throw new Error("Hit a Fat Dog! Pick up the Bone first.");
+                    throw new Error("Hit a Fat Dog! Solve the puzzle first.");
                 }
                 player.row = nextRow;
                 player.col = nextCol;
@@ -725,9 +879,37 @@
                 if (grid[player.row][player.col].hasSwitch) {
                     let switchId = grid[player.row][player.col].switchId;
                     if (!activatedSwitches.has(switchId)) {
-                        activatedSwitches.add(switchId);
-                        setOutput(`🔓 Activated switch ${switchId}! Fat dog removed.`);
-                        drawMap(player.dir);
+                        if (currentLevel >= 9) {
+                            // Randomly select a minigame
+                            const minigames = ['minigame1', 'minigame2'];
+                            const randomMinigame = minigames[Math.floor(Math.random() * minigames.length)];
+
+                            if (randomMinigame === 'minigame1') {
+                                // IMPORTANT: Ensure showMinigame1 is defined globally in minigame1.js
+                                showMinigame1(switchId, (id) => {
+                                    activatedSwitches.add(id);
+                                    saveSwitches(); // Save to localStorage
+                                    drawMap(player.dir);
+                                    setOutput(`🔓 Activated switch ${id}! Puzzle solved (Color Match).`);
+                                });
+                            } else if (randomMinigame === 'minigame2') {
+                                // IMPORTANT: Ensure showMinigame2 is defined globally in minigame2.js
+                                showMinigame2(switchId, (id) => {
+                                    activatedSwitches.add(id);
+                                    saveSwitches(); // Save to localStorage
+                                    drawMap(player.dir);
+                                    setOutput(`🔓 Activated switch ${id}! Puzzle solved (Star Match).`);
+                                });
+                            }
+                        } else {
+                            activatedSwitches.add(switchId);
+                            saveSwitches(); // Save to localStorage
+                            drawMap(player.dir);
+                            setOutput(`🔓 Activated switch ${switchId}!`);
+                        }
+                        // Important: After showing a minigame, stop the current walk animation
+                        // This prevents the ball from moving further while the minigame is active.
+                        return;
                     }
                 }
                 await delay(400);
