@@ -25,59 +25,59 @@ function createCard_mg2(value) {
   const card = document.createElement('div');
   card.className = 'card';
   card.dataset.value = value;
-  // 3. Increase card size for a better look and more space for stars
-  card.style.width = '90px'; // Increased width
-  card.style.height = '120px'; // Increased height
+  card.style.width = '90px';
+  card.style.height = '120px';
   card.style.margin = '10px';
-  card.style.backgroundColor = '#ccc';
-  card.style.borderRadius = '10px';
-  card.style.display = 'flex';
-  card.style.alignItems = 'center';
-  card.style.justifyContent = 'center';
-  card.style.fontSize = '2em'; // This will be overridden for individual stars
+  card.style.backgroundColor = 'transparent';
+  card.style.border = 'none';
+  card.style.borderRadius = '8px'; // Keep border-radius consistent
   card.style.cursor = 'pointer';
-  card.style.transition = 'transform 0.6s';
-  card.style.transformStyle = 'preserve-3d';
   card.style.position = 'relative';
-  card.style.overflow = 'hidden'; // Crucial to keep content inside
 
   const front = document.createElement('div');
   front.className = 'front';
   front.style.position = 'absolute';
   front.style.width = '100%';
   front.style.height = '100%';
-  front.style.backfaceVisibility = 'hidden';
   front.style.display = 'flex';
-  front.style.flexWrap = 'wrap'; // Allows stars to wrap to the next line
-  front.style.alignContent = 'center'; // Distribute rows of stars nicely
-  front.style.justifyContent = 'center'; // Center stars horizontally
-  front.style.backgroundColor = '#fff';
-  front.style.border = '1px solid #000';
-  front.style.borderRadius = '10px';
-  front.style.transform = 'rotateY(180deg)';
-  front.style.padding = '5px'; // Padding to keep stars away from edges
+  front.style.flexWrap = 'wrap';
+  front.style.alignContent = 'center';
+  front.style.justifyContent = 'center';
+  front.style.backgroundColor = '#fff'; // White background for the front
+  front.style.border = '2px solid #FFBF00'; // Gold border for the front - matched to star color
+  front.style.borderRadius = '8px'; // Keep border-radius consistent
+  front.style.padding = '5px';
 
-  // 1. Reduce star size and 2. Arrange stars beautifully within the card
+  // Generate individual star <span> elements with the darker color and black border
   for (let i = 0; i < value; i++) {
     const starSpan = document.createElement('span');
-    starSpan.textContent = '⭐';
-    starSpan.style.fontSize = '1.3em'; // Smaller stars
-    starSpan.style.margin = '2px'; // Small margin between stars
+    starSpan.textContent = '⭐'; // ใช้ emoji ดาวปกติ
+    starSpan.style.color = '#FFBF00'; // สีทองที่เข้มขึ้น
 
-    // Advanced arrangement based on the number of stars
+    // *** จุดที่แก้ไข: เพิ่ม text-shadow สำหรับขอบสีดำของดาว ***
+    starSpan.style.textShadow = '0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black';
+    // '0 0 2px black' สร้างเงาขนาด 2px ไม่มี offset
+    // การใส่ซ้ำๆ จะทำให้เงาดูหนาขึ้น (เหมือนเส้นขอบ)
+    // คุณสามารถปรับขนาด 2px และจำนวนครั้งที่ใส่ซ้ำได้ตามความชอบ
+    // *******************************************************
+
+    starSpan.style.fontSize = '1.3em'; // Smaller stars for fitting
+    starSpan.style.margin = '2px'; // Small margin between stars
+    starSpan.style.lineHeight = '1em'; // Helps vertical alignment of emoji
+
+    // Arrangement logic for different star counts
     if (value === 1) {
-        starSpan.style.flexBasis = '100%'; // Center a single star
+        starSpan.style.flexBasis = '100%';
     } else if (value === 2) {
-        starSpan.style.flexBasis = '45%'; // Two stars side by side
+        starSpan.style.flexBasis = '45%';
     } else if (value === 3) {
-        starSpan.style.flexBasis = '30%'; // Three stars in a row
+        starSpan.style.flexBasis = '30%';
     } else if (value === 4) {
-        starSpan.style.flexBasis = '45%'; // Two rows of two stars
+        starSpan.style.flexBasis = '45%';
     } else if (value === 5) {
-        // Arrange 5 stars as 3 on top, 2 on bottom
-        if (i < 3) { // First 3 stars
+        if (i < 3) {
             starSpan.style.flexBasis = '30%';
-        } else { // Last 2 stars
+        } else {
             starSpan.style.flexBasis = '45%';
         }
     }
@@ -89,13 +89,12 @@ function createCard_mg2(value) {
   back.style.position = 'absolute';
   back.style.width = '100%';
   back.style.height = '100%';
-  back.style.backfaceVisibility = 'hidden';
   back.style.display = 'flex';
   back.style.alignItems = 'center';
   back.style.justifyContent = 'center';
-  back.style.backgroundColor = '#667eea'; /* A nice back color */
+  back.style.backgroundColor = '#667eea';
   back.style.border = '2px solid #667eea';
-  back.style.borderRadius = '10px';
+  back.style.borderRadius = '8px';
   back.textContent = '?';
 
   card.appendChild(front);
@@ -127,7 +126,7 @@ function checkMatch_mg2() {
     matchedPairs_mg2++;
     if (matchedPairs_mg2 === STARS_MG2.length / 2) {
       setTimeout(() => {
-        closeMinigame2(); // Call the specific close function
+        closeMinigame2();
         if (onSuccessCallback_mg2) onSuccessCallback_mg2(currentSwitchId_mg2);
       }, 1000);
     }
@@ -144,25 +143,22 @@ function checkMatch_mg2() {
 // Draw the cards for minigame2
 function drawCards_mg2() {
   const gridDiv = document.getElementById('card-grid');
-  if (!gridDiv) return; // Ensure gridDiv exists
+  if (!gridDiv) return;
   gridDiv.innerHTML = '';
   cards_mg2.forEach(value => {
     gridDiv.appendChild(createCard_mg2(value));
   });
-  // Update grid columns to match the new, larger card width
-  gridDiv.style.gridTemplateColumns = `repeat(5, 90px)`; // Adjusted to new card width
 }
 
 // Create the modal for minigame2
 function createModal_mg2() {
-  // Check if modal already exists to prevent duplicates
   let modal = document.getElementById('minigame-modal');
   if (modal) {
-    modal.remove(); // Remove existing modal if any
+    modal.remove();
   }
 
   modal = document.createElement('div');
-  modal.id = 'minigame-modal'; // This ID is shared, but only one modal instance should be active.
+  modal.id = 'minigame-modal';
   modal.style.display = 'flex';
   modal.style.position = 'fixed';
   modal.style.top = '0';
@@ -192,14 +188,14 @@ function createModal_mg2() {
   const gridDiv = document.createElement('div');
   gridDiv.id = 'card-grid';
   gridDiv.style.display = 'grid';
-  // Update grid columns to match the new, larger card width
-  gridDiv.style.gridTemplateColumns = 'repeat(5, 90px)'; // Adjusted for wider cards
+  gridDiv.style.gridTemplateColumns = 'repeat(5, 90px)';
   gridDiv.style.justifyContent = 'center';
+  gridDiv.style.gap = '15px';
   content.appendChild(gridDiv);
 
   const closeBtn = document.createElement('button');
   closeBtn.textContent = 'Close';
-  closeBtn.onclick = closeMinigame2; // Call the specific close function
+  closeBtn.onclick = closeMinigame2;
   content.appendChild(closeBtn);
 
   modal.appendChild(content);

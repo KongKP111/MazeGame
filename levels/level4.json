@@ -52,7 +52,7 @@
       },
       {
         "t": false,
-        "b": true,
+        "b": false,
         "l": false,
         "r": true
       },
@@ -83,7 +83,7 @@
         "r": true
       },
       {
-        "t": true,
+        "t": false,
         "b": false,
         "l": true,
         "r": false
@@ -122,7 +122,7 @@
       },
       {
         "t": false,
-        "b": false,
+        "b": true,
         "l": true,
         "r": true
       },
