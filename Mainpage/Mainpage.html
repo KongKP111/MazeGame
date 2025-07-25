@@ -961,7 +961,7 @@
                 if (grid[player.row][player.col].hasSwitch) {
                     let switchId = grid[player.row][player.col].switchId;
                     if (!activatedSwitches.has(switchId)) {
-                        if (currentLevel >= 9) {
+                        if (currentLevel >= 6) {
                             // Randomly select a minigame
                             const minigames = ['minigame1', 'minigame2', 'minigame3', 'minigame4'];
                             const randomMinigame = minigames[Math.floor(Math.random() * minigames.length)];
