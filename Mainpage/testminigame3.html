@@ -361,11 +361,7 @@
             background-color: rgba(255, 0, 0, 0.2) !important;
         }
 
-        /* Styles for minigame1 (Color Match Puzzle) */
-        /* The main #minigame-modal and #minigame-modal > div styles are now mostly 
-           overridden by minigame4.js directly using popup.id = 'minigame-popup' 
-           for better control over its specific popup appearance. */
-        #minigame-modal { /* Generic modal fallback if no specific popup is used */
+        #minigame-modal { /* Generic modal fallback */
             display: none; /* Hidden by default */
             position: fixed;
             top: 0;
@@ -415,115 +411,7 @@
             background: linear-gradient(135deg, #764ba2, #667eea);
         }
 
-        /* --- Minigame1 Specific Styles (Water Color Sort) --- */
-        #minigame-modal .row { /* For top-row and bottom-row in minigame1 */
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 15px 0;
-        }
-        #minigame-modal .bottle { /* For each bottle in minigame1 */
-            width: 70px;
-            height: 140px;
-            border: 3px solid #666;
-            border-radius: 10px;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.3s ease-in-out, border-color 0.3s ease-in-out;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        #minigame-modal .bottle .liquid {
-            width: 100%;
-            height: 80%; /* Adjust as needed */
-            position: absolute;
-            bottom: 0;
-        }
-        #minigame-modal .bottle.selected {
-            transform: scale(1.1);
-            border-color: #00ff00;
-        }
-        #minigame-modal #match-label {
-            font-weight: bold;
-            color: #4CAF50;
-        }
-         
-        /* --- Minigame2 Specific Styles (Star Matching Puzzle) --- */
-        #card-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 90px); /* Match new card width */
-            gap: 15px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        .card {
-            width: 90px;
-            height: 120px;
-            background-color: transparent; /* Card background handled by front/back */
-            border: none; /* Border handled by front/back */
-            border-radius: 8px;
-            cursor: pointer;
-            perspective: 1000px; /* IMPORTANT: Create 3D perspective for child elements */
-            position: relative;
-            transition: transform 0.6s; /* Smooth transition for flip */
-            transform-style: preserve-3d; /* IMPORTANT: Ensures 3D transformations apply to children */
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .card .front, .card .back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            /* IMPORTANT: Hides the backface of the element when rotated away from the viewer */
-            backface-visibility: hidden;
-            display: flex; /* Use flexbox for content alignment */
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            top: 0; /* Ensure elements cover the card fully */
-            left: 0; /* Ensure elements cover the card fully */
-        }
-        .card .front {
-            background-color: #fff;
-            color: #FFD700; /* Gold color for stars */
-            /* Initial state: rotated to be hidden. Will rotate back to 0deg when parent .card.flipped */
-            transform: rotateY(180deg);
-            border: 2px solid #FFD700;
-            flex-wrap: wrap; /* Allow stars to wrap */
-            align-content: center; /* Vertically distribute rows of stars */
-            padding: 5px; /* Padding inside the card */
-        }
-        /* Style for individual stars inside the card */
-        .card .front span {
-            font-size: 1.3em; /* Smaller individual stars */
-            margin: 2px; /* Small spacing between stars */
-            display: inline-flex; /* Treat as flex item, but inline for text properties */
-            align-items: center;
-            justify-content: center;
-            line-height: 1em; /* Helps center the emoji vertically in its span */
-        }
-
-        .card .back {
-            background-color: #667eea; /* A nice back color */
-            color: white;
-            font-weight: bold;
-            /* Initial state: visible. Will rotate 180deg when parent .card.flipped */
-            transform: rotateY(0deg);
-            border: 2px solid #667eea;
-        }
-        .card.flipped {
-            /* When flipped, rotate the entire card by 180 degrees */
-            transform: rotateY(180deg);
-        }
-        .card.matched {
-            border-color: #4CAF50;
-            cursor: default;
-            pointer-events: none; /* Disable clicks on matched cards */
-        }
-        /* --- END OF CRITICAL FIXES FOR MINIGAME2 CARDS --- */
-
         /* --- Minigame3 Specific Styles (Line Drawing Puzzle) --- */
-        /* Note: minigame3.js creates its own popup and styles it directly. 
-           This #minigame-popup ID might be used by it for general layout. */
         #minigame-popup {
             position: fixed;
             top: 50%;
@@ -554,23 +442,6 @@
         }
         /* --- END OF Minigame3 STYLES --- */
 
-        /* --- Minigame4 Specific Styles (1 to 20 Game - Popup Version) --- */
-        /* #minigame-popup specific styles are handled dynamically in minigame4.js now */
-         
-        #minigame-popup .card.playable-card {
-            background-color: white; /* Default */
-            color: #333; /* Default text color */
-            border: 2px solid rgba(0,0,0,0.1);
-            transform-origin: center center;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.2); /* Smaller shadow */
-            user-select: none; /* Prevent text selection on cards */
-            -webkit-user-select: none; /* Safari */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* IE/Edge */
-        }
-        #minigame-popup .card.playable-card:active {
-            transform: scale(0.95);
-        }
     </style>
 </head>
 <body>
@@ -606,10 +477,7 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-    <script src="/components/minigame1.js"></script>
-    <script src="/components/minigame2.js"></script>
     <script src="/components/minigame3.js"></script>
-    <script src="/components/minigame4.js"></script>
     <script>
         const DIRS = ["up", "right", "down", "left"];
         const DIR_EMOJI = { "right": "▶", "left": "◀", "up": "▲", "down": "▼" };
@@ -962,39 +830,12 @@
                     let switchId = grid[player.row][player.col].switchId;
                     if (!activatedSwitches.has(switchId)) {
                         if (currentLevel >= 9) {
-                            // Randomly select a minigame
-                            const minigames = ['minigame1', 'minigame2', 'minigame3', 'minigame4'];
-                            const randomMinigame = minigames[Math.floor(Math.random() * minigames.length)];
-
-                            if (randomMinigame === 'minigame1') {
-                                showMinigame1(switchId, (id) => {
-                                    activatedSwitches.add(id);
-                                    saveSwitches();
-                                    drawMap(player.dir);
-                                    setOutput(`🔓 Activated switch ${id}! Puzzle solved (Color Match).`);
-                                });
-                            } else if (randomMinigame === 'minigame2') {
-                                showMinigame2(switchId, (id) => {
-                                    activatedSwitches.add(id);
-                                    saveSwitches();
-                                    drawMap(player.dir);
-                                    setOutput(`🔓 Activated switch ${id}! Puzzle solved (Star Match).`);
-                                });
-                            } else if (randomMinigame === 'minigame3') {
-                                showMinigame3(switchId, (id) => {
-                                    activatedSwitches.add(id);
-                                    saveSwitches();
-                                    drawMap(player.dir);
-                                    setOutput(`🔓 Activated switch ${id}! Puzzle solved (Line Draw).`);
-                                });
-                            } else if (randomMinigame === 'minigame4') {
-                                showMinigame4(switchId, (id) => {
-                                    activatedSwitches.add(id);
-                                    saveSwitches();
-                                    drawMap(player.dir);
-                                    setOutput(`🔓 Activated switch ${id}! Puzzle solved (1 to 20 Game).`);
-                                });
-                            }
+                            showMinigame3(switchId, (id) => {
+                                activatedSwitches.add(id);
+                                saveSwitches();
+                                drawMap(player.dir);
+                                setOutput(`🔓 Activated switch ${id}! Puzzle solved (Line Draw).`);
+                            });
                         } else {
                             activatedSwitches.add(switchId);
                             saveSwitches();
