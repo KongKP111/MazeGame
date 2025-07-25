@@ -140,10 +140,10 @@
       const selectionDiv = document.getElementById('character-selection');
       const previewImg = document.getElementById('preview-img');
       const characters = [
-        { id: 1, name: 'little Red', file: '/assets/pixil-gif-drawing-unscreen.gif'},
+        { id: 1, name: 'little Red', file: '/assets/littlegirl.gif'},
         { id: 2, name: 'Mifu', file: '/assets/New-MIFU-drawing-unscreen.gif' },
-        { id: 3, name: 'capybara', file: '/assets/NEW-CAPYBARA-drawing-unscreen.gif' },
-        { id: 4, name: 'Cat', file: '/assets/Cat-drawing-unscreen.gif' }
+        { id: 3, name: 'capybara', file: '/assets/กะปิ2.gif' },
+        { id: 4, name: 'Cat', file: '/assets/แมวอ้วน.gif' }
       ];
       characters.forEach(char => {
         const button = document.createElement('div');
@@ -151,7 +151,7 @@
         const img = document.createElement('img');
         img.src = char.file;
         img.alt = char.name;
-        if (char.file === '/assets/NEW-CAPYBARA-drawing-unscreen.gif') {
+        if (char.file === '/assets/กะปิ2.gif') {
           img.classList.add('capybara');
         }
         button.appendChild(img);
@@ -161,7 +161,7 @@
           selectedCharacter = char.file;
           previewImg.src = char.file;
           previewImg.style.display = 'block';
-          if (char.file === '/assets/NEW-CAPYBARA-drawing-unscreen.gif') {
+          if (char.file === '/assets/กะปิ2.gif') {
             previewImg.classList.add('capybara');
           } else {
             previewImg.classList.remove('capybara');
